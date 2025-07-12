@@ -6,7 +6,7 @@ import { Eye, EyeOff, User, Mail, Lock, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { signupUser, clearError, clearSignupSuccess } from '../store/authSlice'
+import { signupUser, clearError, clearSignupSuccess } from '../../app/features/authentication/authSlice.js'
 
 export const Signup = () => {
     const [formData, setFormData] = useState({
