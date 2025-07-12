@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { useSignUp } from '@clerk/clerk-react'
 import { Eye, EyeOff, User, Mail, Lock, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,7 +17,6 @@ export const Signup = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const navigate = useNavigate()
-    const { signUp } = useSignUp()
 
     // Redux state
     const dispatch = useDispatch()
@@ -97,21 +95,21 @@ export const Signup = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-purple-50 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-[#F2F2F2] p-4">
             <div className="w-full max-w-md">
-                <Card className="bg-white/90 border-gray-200 backdrop-blur-sm shadow-2xl">
+                <Card className="bg-white border-[#B6B09F]/20 shadow-2xl">
                     <CardContent className="p-8">
                         {/* Avatar Circle */}
                         <div className="flex justify-center mb-8">
-                            <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center border-2 border-purple-200 shadow-lg">
-                                <UserPlus className="w-10 h-10 text-purple-600" />
+                            <div className="w-20 h-20 bg-[#EAE4D5] rounded-full flex items-center justify-center border-2 border-[#B6B09F]/30 shadow-lg">
+                                <UserPlus className="w-10 h-10 text-[#B6B09F]" />
                             </div>
                         </div>
 
                         {/* Welcome Text */}
                         <div className="text-center mb-8">
-                            <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h1>
-                            <p className="text-gray-600">Join us and start your journey today</p>
+                            <h1 className="text-2xl font-bold text-black mb-2">Create Account</h1>
+                            <p className="text-[#B6B09F]">Join us and start your journey today</p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -127,9 +125,6 @@ export const Signup = () => {
                                 </div>
                             )}
 
-                            {/* Clerk CAPTCHA container */}
-                            <div id="clerk-captcha"></div>
-
                             {/* Username Field */}
                             <div>
                                 <Input
@@ -139,7 +134,7 @@ export const Signup = () => {
                                     value={formData.username}
                                     onChange={handleInputChange}
                                     autoComplete="username"
-                                    className="h-12 bg-white border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 shadow-sm"
+                                    className="h-12 bg-white border-[#B6B09F]/30 text-black placeholder-[#B6B09F] rounded-lg focus:border-[#B6B09F] focus:ring-2 focus:ring-[#B6B09F]/20 shadow-sm"
                                     required
                                 />
                             </div>
@@ -153,7 +148,7 @@ export const Signup = () => {
                                     value={formData.email}
                                     onChange={handleInputChange}
                                     autoComplete="email"
-                                    className="h-12 bg-white border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 shadow-sm"
+                                    className="h-12 bg-white border-[#B6B09F]/30 text-black placeholder-[#B6B09F] rounded-lg focus:border-[#B6B09F] focus:ring-2 focus:ring-[#B6B09F]/20 shadow-sm"
                                     required
                                 />
                             </div>
@@ -204,7 +199,7 @@ export const Signup = () => {
                             <Button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl mt-6"
+                                className="w-full h-12 bg-black hover:bg-[#B6B09F] text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl mt-6"
                             >
                                 {loading ? (
                                     <div className="flex items-center justify-center">
@@ -274,7 +269,7 @@ export const Signup = () => {
                         <div className="text-center mt-8">
                             <p className="text-gray-600 text-sm">
                                 Already have an account?{' '}
-                                <Link to="/login" className="text-purple-600 hover:text-purple-700 font-medium underline">
+                                <Link to="/login" className="text-black hover:text-[#B6B09F] font-medium underline">
                                     Sign in
                                 </Link>
                             </p>
