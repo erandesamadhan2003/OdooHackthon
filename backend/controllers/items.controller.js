@@ -3,6 +3,53 @@ import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { User } from "../models/user.model.js"; // Needed for populate to work
 // import axios from 'axios';
 
+// Realistic fallback function to estimate points based on item features
+function estimatePoints({ brand, condition, age_months, category, original_price }) {
+  let base = 0;
+  // Brand: luxury, premium, fast fashion, or generic
+  const luxuryBrands = ['Gucci', 'Prada', 'Louis Vuitton', 'Chanel', 'Hermes', 'Dior', 'Balenciaga'];
+  const premiumBrands = ['Nike', 'Adidas', 'Levi', 'Tommy Hilfiger', 'Ralph Lauren', 'Zara', 'H&M', 'Uniqlo'];
+  if (brand && typeof brand === 'string') {
+    if (luxuryBrands.includes(brand)) base += 1000;
+    else if (premiumBrands.includes(brand)) base += 300;
+    else base += 100;
+  } else {
+    base += 50;
+  }
+  // Condition: new, like new, good, fair, worn
+  if (condition && typeof condition === 'string') {
+    const cond = condition.toLowerCase();
+    if (cond.includes('new with tags')) base *= 1.2;
+    else if (cond.includes('new')) base *= 1.1;
+    else if (cond.includes('like new')) base *= 1.05;
+    else if (cond.includes('good')) base *= 0.95;
+    else if (cond.includes('fair')) base *= 0.8;
+    else if (cond.includes('worn') || cond.includes('poor')) base *= 0.6;
+    else base *= 0.7;
+  }
+  // Age: depreciation (2% per month, max 80% off after 4 years)
+  let depreciation = 1;
+  if (typeof age_months === 'number' && !isNaN(age_months)) {
+    depreciation = Math.max(0.2, 1 - 0.02 * age_months);
+    base *= depreciation;
+  }
+  // Category: outerwear, shoes, accessories, etc.
+  if (category && typeof category === 'string') {
+    const cat = category.toLowerCase();
+    if (['jacket', 'coat', 'blazer'].includes(cat)) base += 150;
+    else if (['dress', 'sweater', 'hoodie'].includes(cat)) base += 100;
+    else if (['shoes', 'pants', 'jeans'].includes(cat)) base += 80;
+    else if (['t-shirt', 'top', 'skirt', 'shorts'].includes(cat)) base += 50;
+    else base += 20;
+  }
+  // Price scaling: 10% of original price, but never more than 2000 points from price
+  if (typeof original_price === 'number' && !isNaN(original_price)) {
+    base += Math.min(2000, original_price * 0.1);
+  }
+  // Clamp to minimum 50, round to nearest 5
+  return Math.max(50, Math.round(base / 5) * 5);
+}
+
 export const getAllItems = async (req, res) => {
   try {
     // Add this line:
@@ -50,27 +97,14 @@ export const createItem = async (req, res) => {
       files.map((file) => uploadToCloudinary(file))
     );
 
-    // Call ML model to get points/price
-    let points_value = 500; // fallback
-    try {
-      const mlRes = await fetch('https://c5130126c798.ngrok-free.app/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          brand: brand || '',
-          condition: condition || '',
-          age_months: age_months ? Number(age_months) : 0,
-          category: category || '',
-          original_price: original_price ? Number(original_price) : 0
-        })
-      });
-      const mlData = await mlRes.json();
-      if (mlRes.ok && mlData && mlData.price) {
-        points_value = mlData.price;
-      }
-    } catch (mlErr) {
-      console.error('ML model error:', mlErr);
-    }
+    // Calculate points using local function
+    const points_value = estimatePoints({
+      brand: typeof brand === 'string' ? brand : '',
+      condition: typeof condition === 'string' ? condition : '',
+      age_months: age_months !== undefined && !isNaN(Number(age_months)) ? Number(age_months) : 0,
+      category: typeof category === 'string' ? category : '',
+      original_price: original_price !== undefined && !isNaN(Number(original_price)) ? Number(original_price) : 0
+    });
 
     const newItem = new Item({
       title,

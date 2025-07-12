@@ -51,6 +51,9 @@ export const Profile = () => {
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [notification, setNotification] = useState({ show: false, type: 'success', message: '' });
+  const [showAddPointsModal, setShowAddPointsModal] = useState(false);
+  const [addPointsAmount, setAddPointsAmount] = useState('');
+  const [addPointsLoading, setAddPointsLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -426,6 +429,14 @@ export const Profile = () => {
                     <Coins className="w-4 h-4 mr-1 text-yellow-500" />
                     {userInfo.totalPoints}
                   </span>
+                </div>
+                <div className="flex justify-center mt-2">
+                  <Button
+                    onClick={() => setShowAddPointsModal(true)}
+                    className="bg-[#B6B09F] hover:bg-black hover:text-white text-black font-semibold px-6 py-2 rounded-full"
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Add Points
+                  </Button>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[#B6B09F]">Location</span>
@@ -851,6 +862,71 @@ export const Profile = () => {
           message={notification.message}
           onClose={() => setNotification({ ...notification, show: false })}
         />
+      )}
+      {showAddPointsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold text-black mb-4">Add Points</h3>
+            <input
+              type="number"
+              min="1"
+              value={addPointsAmount}
+              onChange={e => setAddPointsAmount(e.target.value)}
+              className="w-full p-3 border border-[#B6B09F]/30 rounded-lg focus:border-[#B6B09F] focus:outline-none mb-4"
+              placeholder="Enter amount"
+            />
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowAddPointsModal(false)}
+                className="flex-1 border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
+                disabled={addPointsLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!addPointsAmount || isNaN(Number(addPointsAmount)) || Number(addPointsAmount) <= 0) {
+                    setNotification({ show: true, type: 'error', message: 'Enter a valid amount' });
+                    return;
+                  }
+                  setAddPointsLoading(true);
+                  try {
+                    await fetch('http://localhost:8004/api/points/add', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ amount: Number(addPointsAmount) })
+                    });
+                    setShowAddPointsModal(false);
+                    setAddPointsAmount('');
+                    setNotification({ show: true, type: 'success', message: 'Points added successfully!' });
+                    // Refetch profile
+                    const profileRes = await api.auth.getProfile();
+                    const user = profileRes.user;
+                    setUserInfo({
+                      id: user._id,
+                      name: user.username,
+                      email: user.email,
+                      joinDate: new Date(user.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' }),
+                      totalPoints: user.points_balance,
+                      profile_photo: user.profile_photo,
+                      location: user.location,
+                    });
+                  } catch (err) {
+                    setNotification({ show: true, type: 'error', message: 'Failed to add points' });
+                  } finally {
+                    setAddPointsLoading(false);
+                  }
+                }}
+                disabled={addPointsLoading || !addPointsAmount}
+                className="flex-1 bg-black hover:bg-[#B6B09F] text-white"
+              >
+                {addPointsLoading ? 'Adding...' : 'Add Points'}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

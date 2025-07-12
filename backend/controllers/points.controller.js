@@ -60,6 +60,22 @@ export const redeemPoints = async (req, res) => {
   }
 };
 
+export const addPoints = async (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+      return res.status(400).json({ error: 'Invalid amount' });
+    }
+    const user = await User.findById(req.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    user.points_balance += Number(amount);
+    await user.save();
+    res.json({ message: 'Points added', new_balance: user.points_balance });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to add points' });
+  }
+};
+
 export const getPointsHistory = async (req, res) => {
   try {
     const txns = await Transaction.find({ user_id: req.id }).sort({ createdAt: -1 });
