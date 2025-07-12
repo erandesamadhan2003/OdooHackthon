@@ -3,14 +3,14 @@ import {
   getPointsBalance,
   redeemPoints,
   getPointsHistory
-} from '../controllers/pointsController.js';
+} from '../controllers/points.controller.js';
 
-import isAuthenticated from '../middleware/isAuthentication.js';
+import isAuthenticated from '../middlewares/isAuthentication.js';
 
 const router = express.Router();
 
-router.get('/balance/:userId', isAuthenticated, getPointsBalance);    // Private
-router.post('/redeem', isAuthenticated, redeemPoints);                // Private
-router.get('/history/:userId', isAuthenticated, getPointsHistory);    // Private
+router.get('/balance', isAuthenticated, getPointsBalance);    // Private
+router.post('/redeem', isAuthenticated, redeemPoints);        // Private
+router.get('/history', isAuthenticated, getPointsHistory);    // Private
 
 export default router;

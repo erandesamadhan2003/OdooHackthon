@@ -129,6 +129,7 @@ export const updateUserProfile = async (req, res) => {
 };
 
 export const uploadProfilePicture = async (req, res) => {
+    console.log("req.id:", req.id);
     try {
         if (!req.file) {
             return res.status(400).json({ status: "error", error: "No file uploaded" });

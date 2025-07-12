@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { HomeIcon, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { ShoppingBag, LogIn, UserPlus, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { logoutUser } from '@/app/features/authentication/authSlice';
 
@@ -17,13 +17,28 @@ export const Navbar = () => {
   };
 
   return (
-    <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-white border-b border-[#B6B09F]/20 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
+          {/* Logo */}
           <div className="flex items-center">
-            <HomeIcon className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-xl font-bold text-gray-900">ReWear</span>
+            <ShoppingBag className="h-8 w-8 text-[#B6B09F]" />
+            <span className="ml-2 text-xl font-bold text-black">ReWear</span>
           </div>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex space-x-8">
+            <Link to="/" className="text-black hover:text-[#B6B09F] transition-colors">Home</Link>
+            <Link to="/browse" className="text-black hover:text-[#B6B09F] transition-colors">Browse</Link>
+            {!isAuthenticated && (
+              <>
+                <Link to="/login" className="text-black hover:text-[#B6B09F] transition-colors">Login</Link>
+                <Link to="/signup" className="text-black hover:text-[#B6B09F] transition-colors">Sign Up</Link>
+              </>
+            )}
+          </nav>
+
+          {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               // Show user info and logout button when user is logged in
@@ -35,7 +50,7 @@ export const Navbar = () => {
                 )}
                 <Button 
                   variant="outline" 
-                  className="flex items-center"
+                  className="flex items-center border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
                   onClick={handleLogout}
                   disabled={loading}
                 >
@@ -47,13 +62,13 @@ export const Navbar = () => {
               // Show login and signup buttons when user is not logged in
               <>
                 <Link to="/login">
-                  <Button variant="outline" className="flex items-center">
+                  <Button variant="outline" className="flex items-center border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white">
                     <LogIn className="h-4 w-4 mr-2" />
                     Login
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="flex items-center bg-blue-600 hover:bg-blue-700">
+                  <Button className="flex items-center bg-black hover:bg-[#B6B09F] text-white">
                     <UserPlus className="h-4 w-4 mr-2" />
                     Sign Up
                   </Button>
