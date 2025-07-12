@@ -7,6 +7,7 @@ import { Profile } from './pages/Profile'
 import { Browse } from './pages/Browse'
 import { ItemListing } from './pages/ItemListing'
 import { ItemDetail } from './pages/ItemDetail'
+import { ProductDetailPage } from './pages/ProductDetailPage'
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
   {
     path: '/item/:id',
     element: <ItemDetail />
+  },
+  {
+    path: '/product-detail/:id',
+    element: <ProductDetailPage />
   },
 ])
 

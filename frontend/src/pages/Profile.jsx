@@ -389,13 +389,15 @@ export const Profile = () => {
                                   View
                                 </Button>
                               </Link>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="flex-1 border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white text-xs"
-                              >
-                                Edit
-                              </Button>
+                              <Link to={`/product-detail/${item.id}`} className="flex-1">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="w-full border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white text-xs"
+                                >
+                                  Edit
+                                </Button>
+                              </Link>
                             </div>
                           </div>
                         </div>
