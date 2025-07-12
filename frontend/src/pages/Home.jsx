@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Search, ShoppingBag, Heart, Star, ChevronLeft, ChevronRight, Users, Shield, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,19 @@ import { selectItemsByCategory } from '@/app/features/categories/categoriesSlice
 
 export const Home = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
   const { items, loading, error, filters } = useSelector((state) => state.items);
   const selectedCategory = useSelector((state) => state.categories.selectedCategory);
   const filteredItems = useSelector(selectItemsByCategory);
+  
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
 
-  // Fetch items on component mount
   useEffect(() => {
-    dispatch(fetchItems());
-  }, [dispatch]);
+    if (items.length === 0 && !loading && !error) {
+      dispatch(fetchItems());
+    }
+  }, [dispatch, items.length, loading, error]);
 
   // Handle filter changes
   const handleFilterChange = (newFilters) => {
@@ -39,6 +44,17 @@ export const Home = () => {
   const handleItemClick = (item) => {
     // Navigate to item detail page or open modal
     console.log('Item clicked:', item);
+  };
+
+  // Handle start swapping click - check authentication
+  const handleStartSwapping = () => {
+    if (isAuthenticated && user) {
+      // User is authenticated, navigate to browse page
+      navigate('/browse');
+    } else {
+      // User is not authenticated, navigate to login page
+      navigate('/login');
+    }
   };
 
   // Get featured items (first 4 items from filtered results)
@@ -60,11 +76,13 @@ export const Home = () => {
             Transform your wardrobe sustainably. Swap clothes directly with others or use our point-based system to give your unused garments a second life.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/signup">
-              <Button size="lg" className="bg-black hover:bg-[#B6B09F] text-white px-8 py-3 text-lg">
-                Start Swapping
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="bg-black hover:bg-[#B6B09F] text-white px-8 py-3 text-lg"
+              onClick={handleStartSwapping}
+            >
+              Start Swapping
+            </Button>
             <Link to="/browse">
               <Button size="lg" variant="outline" className="px-8 py-3 text-lg border-black text-black hover:bg-black hover:text-white">
                 Browse Clothes
@@ -263,11 +281,13 @@ export const Home = () => {
           <p className="text-xl text-[#B6B09F] mb-8">
             Join thousands of fashion lovers who are already trading clothes sustainably with ReWear.
           </p>
-          <Link to="/signup">
-            <Button size="lg" className="bg-black hover:bg-[#B6B09F] text-white px-8 py-3 text-lg">
-              Start Trading Today
-            </Button>
-          </Link>
+          <Button 
+            size="lg" 
+            className="bg-black hover:bg-[#B6B09F] text-white px-8 py-3 text-lg"
+            onClick={handleStartSwapping}
+          >
+            Start Trading Today
+          </Button>
         </div>
       </section>
 
