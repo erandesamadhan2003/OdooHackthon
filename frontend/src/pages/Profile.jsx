@@ -310,17 +310,21 @@ export const Profile = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button className="bg-black hover:bg-[#B6B09F] text-white">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload New Item
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    className="border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
-                  >
-                    <ArrowUpDown className="w-4 h-4 mr-2" />
-                    Browse Swaps
-                  </Button>
+                  <Link to="/list-item">
+                    <Button className="w-full bg-black hover:bg-[#B6B09F] text-white">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload New Item
+                    </Button>
+                  </Link>
+                  <Link to="/browse">
+                    <Button 
+                      variant="outline"
+                      className="w-full border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
+                    >
+                      <ArrowUpDown className="w-4 h-4 mr-2" />
+                      Browse Swaps
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

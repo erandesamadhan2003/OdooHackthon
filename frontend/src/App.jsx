@@ -4,6 +4,9 @@ import { Home } from './pages/Home'
 import { Login } from './pages/auth/Login'
 import { Signup } from './pages/auth/Signup'
 import { Profile } from './pages/Profile'
+import { Browse } from './pages/Browse'
+import { ItemListing } from './pages/ItemListing'
+import { ItemDetail } from './pages/ItemDetail'
 
 const router = createBrowserRouter([
   {
@@ -20,6 +23,18 @@ const router = createBrowserRouter([
   {
     path: '/profile',
     element: <Profile />
+  },
+  {
+    path: '/browse',
+    element: <Browse />
+  },
+  {
+    path: '/list-item',
+    element: <ItemListing />
+  },
+  {
+    path: '/item/:id',
+    element: <ItemDetail />
   },
 ])
 
