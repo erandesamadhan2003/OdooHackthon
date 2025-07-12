@@ -3,7 +3,7 @@ import {
   getPointsBalance,
   redeemPoints,
   getPointsHistory
-} from '../controllers/pointsController.js';
+} from '../controllers/points.controller.js';
 
 import isAuthenticated from '../middleware/isAuthentication.js';
 

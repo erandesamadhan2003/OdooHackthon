@@ -5,10 +5,10 @@ import {
   createItem,
   updateItem,
   deleteItem
-} from '../controllers/itemController.js';
+} from '../controllers/items.controller.js';
 
-import isAuthenticated from '../middleware/isAuthentication.js';
-import upload from '../middleware/multer.js'; // For Cloudinary
+import isAuthenticated from '../middlewares/isAuthentication.js';
+import upload from '../middlewares/multer.js'; // For Cloudinary
 
 const router = express.Router();
 
