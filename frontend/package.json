@@ -11,23 +11,15 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
-<<<<<<< HEAD
-=======
     "@reduxjs/toolkit": "^2.8.2",
->>>>>>> a0262968e61c8b84703c7d8c4ad02de703a80e56
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.525.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-<<<<<<< HEAD
-    "react-router-dom": "^7.6.3",
-    "react-toastify": "^11.0.5",
-=======
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.3",
->>>>>>> a0262968e61c8b84703c7d8c4ad02de703a80e56
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7"
   },
