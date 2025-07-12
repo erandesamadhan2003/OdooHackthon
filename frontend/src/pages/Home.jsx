@@ -8,11 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Navbar } from '@/components/layouts/Navbar';
 import { ItemCard } from '@/components/items/ItemCard';
 import { FilterBar } from '@/components/items/FilterBar';
+import { CategorySection } from '@/components/categories/CategorySection';
 import { fetchItems, setFilters, clearFilters } from '@/app/features/items/itemsSlice';
+import { selectItemsByCategory } from '@/app/features/categories/categoriesSlice';
 
 export const Home = () => {
   const dispatch = useDispatch();
   const { items, loading, error, filters } = useSelector((state) => state.items);
+  const selectedCategory = useSelector((state) => state.categories.selectedCategory);
+  const filteredItems = useSelector(selectItemsByCategory);
 
   // Fetch items on component mount
   useEffect(() => {
@@ -37,17 +41,8 @@ export const Home = () => {
     console.log('Item clicked:', item);
   };
 
-  const categories = [
-    { name: 'Dresses', image: '/api/placeholder/200/200' },
-    { name: 'Tops & Shirts', image: '/api/placeholder/200/200' },
-    { name: 'Pants & Jeans', image: '/api/placeholder/200/200' },
-    { name: 'Skirts', image: '/api/placeholder/200/200' },
-    { name: 'Jackets & Coats', image: '/api/placeholder/200/200' },
-    { name: 'Accessories', image: '/api/placeholder/200/200' }
-  ];
-
-  // Get featured items (first 4 items)
-  const featuredItems = items.slice(0, 4);
+  // Get featured items (first 4 items from filtered results)
+  const featuredItems = filteredItems.slice(0, 4);
 
   return (
     <div className="min-h-screen bg-[#F2F2F2]">
@@ -90,7 +85,9 @@ export const Home = () => {
       <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#F2F2F2]">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-black">Featured Items</h2>
+            <h2 className="text-3xl font-bold text-black">
+              {selectedCategory ? `Featured ${selectedCategory} Items` : 'Featured Items'}
+            </h2>
             <div className="flex space-x-2">
               <Button variant="outline" size="sm" className="p-2 border-[#B6B09F] text-[#B6B09F] hover:bg-[#B6B09F] hover:text-white">
                 <ChevronLeft className="h-4 w-4" />
@@ -134,30 +131,19 @@ export const Home = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-[#B6B09F]">No featured items available</p>
+              <p className="text-[#B6B09F]">
+                {selectedCategory 
+                  ? `No ${selectedCategory} items available` 
+                  : 'No featured items available'
+                }
+              </p>
             </div>
           )}
         </div>
       </section>
 
       {/* Categories Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-16 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-black mb-12">Shop by Clothing Category</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {categories.map((category, index) => (
-              <Card key={index} className="bg-[#F2F2F2] border-[#B6B09F]/20 hover:shadow-lg transition-shadow cursor-pointer">
-                <CardContent className="p-4">
-                  <div className="aspect-square bg-[#EAE4D5] rounded-lg mb-4 flex items-center justify-center">
-                    <span className="text-[#B6B09F] text-sm">Image</span>
-                  </div>
-                  <h3 className="font-semibold text-center text-black">{category.name}</h3>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      <CategorySection />
 
       {/* Features Section */}
       <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#EAE4D5]">
@@ -220,7 +206,9 @@ export const Home = () => {
       {/* All Items Section */}
       <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#F2F2F2]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-black mb-12">Latest Clothing Listings</h2>
+          <h2 className="text-3xl font-bold text-center text-black mb-12">
+            {selectedCategory ? `${selectedCategory} Items` : 'Latest Clothing Listings'}
+          </h2>
           
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -243,9 +231,9 @@ export const Home = () => {
                 Try Again
               </Button>
             </div>
-          ) : items.length > 0 ? (
+          ) : filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <ItemCard 
                   key={item._id} 
                   item={item} 
@@ -255,7 +243,12 @@ export const Home = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-[#B6B09F]">No items available</p>
+              <p className="text-[#B6B09F]">
+                {selectedCategory 
+                  ? `No ${selectedCategory} items available` 
+                  : 'No items available'
+                }
+              </p>
             </div>
           )}
         </div>
