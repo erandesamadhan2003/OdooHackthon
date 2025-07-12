@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ShoppingBag, User, Heart, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ShoppingBag, Heart, Star, ChevronLeft, ChevronRight, Users, Shield, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Navbar } from '@/components/layouts/Navbar';
 
 export const Home = () => {
   const categories = [
@@ -35,41 +36,30 @@ export const Home = () => {
 
   return (
     <div className="min-h-screen bg-[#F2F2F2]">
-      {/* Header */}
-      <header className="bg-white border-b border-[#B6B09F]/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <ShoppingBag className="h-8 w-8 text-[#B6B09F]" />
-              <span className="ml-2 text-xl font-bold text-black">ReWear</span>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <Link to="/" className="text-black hover:text-[#B6B09F] transition-colors">Home</Link>
-              <Link to="/browse" className="text-black hover:text-[#B6B09F] transition-colors">Browse</Link>
-              <Link to="/profile" className="text-black hover:text-[#B6B09F] transition-colors">Profile</Link>
-              <Link to="/login" className="text-black hover:text-[#B6B09F] transition-colors">Login</Link>
-              <Link to="/signup" className="text-black hover:text-[#B6B09F] transition-colors">Sign Up</Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+      {/* Navbar */}
+      <Navbar />
 
       {/* Hero Section */}
       <section className="bg-[#EAE4D5] px-4 sm:px-6 lg:px-8 py-16">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-black mb-6">
-            Exchange Your Clothes, Reduce Waste
+            Exchange Your Clothes,
+            <span className="text-[#B6B09F]"> Reduce Waste</span>
           </h1>
           <p className="text-xl text-[#B6B09F] mb-8 max-w-2xl mx-auto">
             Transform your wardrobe sustainably. Swap clothes directly with others or use our point-based system to give your unused garments a second life.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-black hover:bg-[#B6B09F] text-white px-8 py-3 text-lg">
-              Start Swapping
-            </Button>
-            <Button size="lg" variant="outline" className="px-8 py-3 text-lg border-black text-black hover:bg-black hover:text-white">
-              Browse Clothes
-            </Button>
+            <Link to="/signup">
+              <Button size="lg" className="bg-black hover:bg-[#B6B09F] text-white px-8 py-3 text-lg">
+                Start Swapping
+              </Button>
+            </Link>
+            <Link to="/browse">
+              <Button size="lg" variant="outline" className="px-8 py-3 text-lg border-black text-black hover:bg-black hover:text-white">
+                Browse Clothes
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -92,7 +82,7 @@ export const Home = () => {
       <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#F2F2F2]">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-black">Featured clothes</h2>
+            <h2 className="text-3xl font-bold text-black">Featured Clothes</h2>
             <div className="flex space-x-2">
               <Button variant="outline" size="sm" className="p-2 border-[#B6B09F] text-[#B6B09F] hover:bg-[#B6B09F] hover:text-white">
                 <ChevronLeft className="h-4 w-4" />
@@ -145,6 +135,64 @@ export const Home = () => {
         </div>
       </section>
 
+      {/* Features Section */}
+      <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#EAE4D5]">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-black mb-12">
+            Why Choose ReWear?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="text-center border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <div className="mx-auto w-16 h-16 bg-[#B6B09F]/20 rounded-full flex items-center justify-center mb-4">
+                  <Users className="h-8 w-8 text-[#B6B09F]" />
+                </div>
+                <CardTitle className="text-xl font-semibold text-black">
+                  Sustainable Fashion
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-[#B6B09F]">
+                  Join our community committed to sustainable fashion. Reduce waste by giving clothes a second life through buying and selling.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <div className="mx-auto w-16 h-16 bg-[#B6B09F]/20 rounded-full flex items-center justify-center mb-4">
+                  <Shield className="h-8 w-8 text-[#B6B09F]" />
+                </div>
+                <CardTitle className="text-xl font-semibold text-black">
+                  Secure Trading
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-[#B6B09F]">
+                  Trade with confidence. Our secure platform ensures safe transactions and protects both buyers and sellers.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <div className="mx-auto w-16 h-16 bg-[#B6B09F]/20 rounded-full flex items-center justify-center mb-4">
+                  <Zap className="h-8 w-8 text-[#B6B09F]" />
+                </div>
+                <CardTitle className="text-xl font-semibold text-black">
+                  Easy Swapping
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-[#B6B09F]">
+                  Simple and intuitive platform to swap, buy, or sell your clothes. List items quickly and discover unique pieces.
+                </CardDescription>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Product Listings */}
       <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#F2F2F2]">
         <div className="max-w-6xl mx-auto">
@@ -180,6 +228,23 @@ export const Home = () => {
               </Card>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="px-4 sm:px-6 lg:px-8 py-16 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-black mb-6">
+            Ready to Get Started?
+          </h2>
+          <p className="text-xl text-[#B6B09F] mb-8">
+            Join thousands of fashion lovers who are already trading clothes sustainably with ReWear.
+          </p>
+          <Link to="/signup">
+            <Button size="lg" className="bg-black hover:bg-[#B6B09F] text-white px-8 py-3 text-lg">
+              Start Trading Today
+            </Button>
+          </Link>
         </div>
       </section>
 

@@ -1,9 +1,12 @@
 import Item from "../models/item.model.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
+import { User } from "../models/user.model.js"; // Needed for populate to work
 // import axios from 'axios';
 
 export const getAllItems = async (req, res) => {
   try {
+    // Add this line:
+    console.log("GET /api/items called");
     const { category, size, condition, search } = req.query;
 
     const filter = {};
@@ -14,10 +17,11 @@ export const getAllItems = async (req, res) => {
 
     const items = await Item.find(filter).populate(
       "uploaded_by",
-      "name profile_photo"
+      "username profile_photo"
     );
     res.json(items);
   } catch (err) {
+    console.error("Error in getAllItems:", err); // <--- Add this
     res.status(500).json({ error: "Server Error" });
   }
 };

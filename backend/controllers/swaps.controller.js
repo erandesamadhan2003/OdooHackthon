@@ -1,12 +1,13 @@
 import Swap from '../models/swap.model.js';
 import Item from '../models/item.model.js';
+import { User } from '../models/user.model.js'; // Needed for populate
 
 export const requestSwap = async (req, res) => {
   try {
     const { owner_id, item_id, message } = req.body;
 
     const newSwap = new Swap({
-      requester_id: req.user.id,
+      requester_id: req.id, 
       owner_id,
       item_id,
       message,
@@ -22,7 +23,7 @@ export const requestSwap = async (req, res) => {
 export const getUserSwaps = async (req, res) => {
   try {
     const swaps = await Swap.find({
-      $or: [{ requester_id: req.user.id }, { owner_id: req.user.id }]
+      $or: [{ requester_id: req.id }, { owner_id: req.id }] // FIXED
     }).populate('item_id requester_id owner_id');
     res.json(swaps);
   } catch (err) {
@@ -43,7 +44,6 @@ export const updateSwapStatus = async (req, res) => {
     // If accepted, mark item as "swapped"
     if (status === 'accepted') {
       await Item.findByIdAndUpdate(swap.item_id, { status: 'swapped' });
-
       // Award points to item owner (optional)
       // or handle points transfer
     }
