@@ -33,12 +33,6 @@ export const Navbar = () => {
             {isAuthenticated && (
               <Link to="/profile" className="text-black hover:text-[#B6B09F] transition-colors">Profile</Link>
             )}
-            {!isAuthenticated && (
-              <>
-                <Link to="/login" className="text-black hover:text-[#B6B09F] transition-colors">Login</Link>
-                <Link to="/signup" className="text-black hover:text-[#B6B09F] transition-colors">Sign Up</Link>
-              </>
-            )}
           </nav>
 
           {/* Auth Buttons */}
