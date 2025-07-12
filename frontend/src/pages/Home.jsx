@@ -1,36 +1,15 @@
-import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { LogIn, UserPlus, Home as HomeIcon, Users, Shield, Zap } from 'lucide-react'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { HomeIcon, LogIn, UserPlus, Users, Shield, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Navbar } from '@/components/layouts/Navbar';
 
 export const Home = () => {
   return (
     <div className="min-h-screen bg-blue-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <HomeIcon className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">ReWear</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link to="/login">
-                <Button variant="outline" className="flex items-center">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Login
-                </Button>
-              </Link>
-              <Link to="/signup">
-                <Button className="flex items-center bg-blue-600 hover:bg-blue-700">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Navbar */}
+      <Navbar />
 
       {/* Hero Section */}
       <section className="px-4 sm:px-6 lg:px-8 py-16">
@@ -126,9 +105,10 @@ export const Home = () => {
           <p className="text-xl text-gray-600 mb-8">
             Join thousands of fashion lovers who are already trading clothes sustainably with ReWear.
           </p>
-          <Link to="/signup">              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg">
-                Start Trading
-              </Button>
+          <Link to="/signup">
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg">
+              Start Trading
+            </Button>
           </Link>
         </div>
       </section>
@@ -148,5 +128,5 @@ export const Home = () => {
         </div>
       </footer>
     </div>
-  )
-}
+  );
+};
