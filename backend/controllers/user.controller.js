@@ -52,7 +52,15 @@ export const login = async (req, res) => {
                 sameSite: 'strict',
                 secure: process.env.NODE_ENV === 'production',
             })
-            .json({ status: "success", message: "Login successful" });
+            .json({ 
+                status: "success", 
+                message: "Login successful",
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email
+                }
+            });
     } catch (err) {
         res.status(500).json({ error: "Server error" });
     }

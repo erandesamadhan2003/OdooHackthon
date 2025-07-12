@@ -59,7 +59,7 @@ export const logoutUser = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await fetch('http://localhost:8004/api/user/logout', {
-                method: 'POST',
+                method: 'GET',
                 credentials: 'include',
             });
 
@@ -77,7 +77,7 @@ export const logoutUser = createAsyncThunk(
 const authSlice = createSlice({
     name: 'auth',
     initialState: {
-        user: null,
+        user: null, // This will now contain { id, username, email }
         username: null,
         isAuthenticated: false,
         loading: false,
@@ -93,6 +93,7 @@ const authSlice = createSlice({
         },
         setUser: (state, action) => {
             state.user = action.payload;
+            state.username = action.payload.username;
             state.isAuthenticated = true;
         },
         clearUser: (state) => {
@@ -112,7 +113,9 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.isAuthenticated = true;
                 state.error = null;
-                state.username = getCookie('username') || null;
+                // Store the complete user object including userId
+                state.user = action.payload.user;
+                state.username = action.payload.user.username;
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;

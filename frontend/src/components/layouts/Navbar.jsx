@@ -1,9 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { HomeIcon, LogIn, UserPlus } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { HomeIcon, LogIn, UserPlus, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { logoutUser } from '@/app/features/authentication/authSlice';
 
 export const Navbar = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated, loading, username } = useSelector((state) => state.auth);
+
+  // Handle logout
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    navigate('/');
+  };
+
   return (
     <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -13,18 +25,41 @@ export const Navbar = () => {
             <span className="ml-2 text-xl font-bold text-gray-900">ReWear</span>
           </div>
           <div className="flex items-center space-x-4">
-            <Link to="/login">
-              <Button variant="outline" className="flex items-center">
-                <LogIn className="h-4 w-4 mr-2" />
-                Login
-              </Button>
-            </Link>
-            <Link to="/signup">
-              <Button className="flex items-center bg-blue-600 hover:bg-blue-700">
-                <UserPlus className="h-4 w-4 mr-2" />
-                Sign Up
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              // Show user info and logout button when user is logged in
+              <>
+                {username && (
+                  <span className="text-sm font-medium text-gray-700">
+                    Welcome, {username}
+                  </span>
+                )}
+                <Button 
+                  variant="outline" 
+                  className="flex items-center"
+                  onClick={handleLogout}
+                  disabled={loading}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  {loading ? 'Logging out...' : 'Logout'}
+                </Button>
+              </>
+            ) : (
+              // Show login and signup buttons when user is not logged in
+              <>
+                <Link to="/login">
+                  <Button variant="outline" className="flex items-center">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button className="flex items-center bg-blue-600 hover:bg-blue-700">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
