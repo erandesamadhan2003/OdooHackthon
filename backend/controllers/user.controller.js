@@ -136,46 +136,54 @@ export const updateUserProfile = async (req, res) => {
     const user = await User.findById(req.id);
 
     if (!user) {
+      console.log("[updateUserProfile] User not found");
       return res.status(404).json({ status: "error", error: "User not found" });
     }
 
     const { username, profile_photo, location } = req.body;
+    console.log("[updateUserProfile] Incoming data:", req.body);
 
     if (username) user.username = username;
     if (profile_photo) user.profile_photo = profile_photo;
     if (location) user.location = location;
 
     await user.save();
+    console.log("[updateUserProfile] User after save:", user);
 
     res
       .status(200)
       .json({ status: "success", message: "Profile updated", user });
   } catch (err) {
-    console.error(err);
+    console.error("[updateUserProfile] Error:", err);
     res.status(500).json({ status: "error", error: "Server error" });
   }
 };
 
 export const uploadProfilePicture = async (req, res) => {
-  console.log("req.id:", req.id);
+  console.log("[uploadProfilePicture] req.id:", req.id);
   try {
     if (!req.file) {
+      console.log("[uploadProfilePicture] No file uploaded");
       return res
         .status(400)
         .json({ status: "error", error: "No file uploaded" });
     }
+    console.log("[uploadProfilePicture] req.file:", req.file);
 
     const user = await User.findById(req.id);
     if (!user) {
+      console.log("[uploadProfilePicture] User not found");
       return res.status(404).json({ status: "error", error: "User not found" });
     }
 
     // Upload to Cloudinary
     const cloudinaryUrl = await uploadToCloudinary(req.file);
+    console.log("[uploadProfilePicture] Cloudinary URL:", cloudinaryUrl);
 
     // Update user profile with new image URL
     user.profile_photo = cloudinaryUrl;
     await user.save();
+    console.log("[uploadProfilePicture] User after save:", user);
 
     res.status(200).json({
       status: "success",
@@ -191,7 +199,7 @@ export const uploadProfilePicture = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Profile picture upload error:", err);
+    console.error("[uploadProfilePicture] Profile picture upload error:", err);
     res
       .status(500)
       .json({ status: "error", error: "Failed to upload profile picture" });

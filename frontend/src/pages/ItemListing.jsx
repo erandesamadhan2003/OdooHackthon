@@ -16,11 +16,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useDispatch } from 'react-redux';
+import { createItem } from '@/app/features/items/itemsSlice';
 
 export const ItemListing = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [mainImage, setMainImage] = useState(null);
   const [additionalImages, setAdditionalImages] = useState([]);
+  const [mainImageFile, setMainImageFile] = useState(null);
+  const [additionalImageFiles, setAdditionalImageFiles] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -29,8 +34,9 @@ export const ItemListing = () => {
     condition: '',
     brand: '',
     color: '',
-    points: '',
-    location: ''
+    original_price: '',
+    location: '',
+    age_months: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -65,6 +71,7 @@ export const ItemListing = () => {
   const handleMainImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      setMainImageFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         setMainImage(e.target.result);
@@ -76,6 +83,7 @@ export const ItemListing = () => {
   const handleAdditionalImageUpload = (event) => {
     const files = Array.from(event.target.files);
     files.forEach(file => {
+      setAdditionalImageFiles(prev => [...prev, file]);
       const reader = new FileReader();
       reader.onload = (e) => {
         setAdditionalImages(prev => [...prev, e.target.result]);
@@ -86,6 +94,7 @@ export const ItemListing = () => {
 
   const removeAdditionalImage = (index) => {
     setAdditionalImages(prev => prev.filter((_, i) => i !== index));
+    setAdditionalImageFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleInputChange = (e) => {
@@ -99,13 +108,21 @@ export const ItemListing = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Prepare item data
+      const itemData = {
+        ...formData,
+        title: formData.name,
+        images: [mainImageFile, ...additionalImageFiles].filter(Boolean),
+      };
+      await dispatch(createItem(itemData)).unwrap();
       setIsSubmitting(false);
       alert('Item listed successfully!');
       navigate('/browse');
-    }, 2000);
+    } catch (err) {
+      setIsSubmitting(false);
+      alert('Failed to list item: ' + (err.message || err));
+    }
   };
 
   return (
@@ -261,6 +278,25 @@ export const ItemListing = () => {
               </div>
             </div>
 
+            {/* Age of Product */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Age of Product (in months) *
+              </label>
+              <div className="relative">
+                <Input
+                  name="age_months"
+                  type="number"
+                  min="0"
+                  value={formData.age_months}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 12"
+                  className="border-[#B6B09F]/30 focus:border-[#B6B09F]"
+                  required
+                />
+              </div>
+            </div>
+
             {/* Product Details Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {/* Category */}
@@ -345,19 +381,19 @@ export const ItemListing = () => {
                 />
               </div>
 
-              {/* Points Value */}
+              {/* Original Price */}
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Points Value *
+                  Original Price (INR) *
                 </label>
                 <div className="relative">
-                  <Package className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#B6B09F]" />
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#B6B09F]" />
                   <Input
-                    name="points"
+                    name="original_price"
                     type="number"
-                    value={formData.points}
+                    value={formData.original_price}
                     onChange={handleInputChange}
-                    placeholder="e.g., 450"
+                    placeholder="e.g., 56999"
                     className="pl-10 border-[#B6B09F]/30 focus:border-[#B6B09F]"
                     required
                   />

@@ -41,6 +41,7 @@ export const Profile = () => {
   const [showAllPurchases, setShowAllPurchases] = useState(false);
   const [editProfileData, setEditProfileData] = useState(null);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -86,15 +87,33 @@ export const Profile = () => {
     fetchData();
   }, []);
 
-  const handleImageUpload = (event) => {
+  const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      setEditProfileData((prev) => ({ ...prev, profile_photo: file }));
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileImage(e.target.result);
-      };
-      reader.readAsDataURL(file);
+      setUploadingImage(true);
+      try {
+        const formData = new FormData();
+        formData.append('profile_picture', file);
+        const res = await api.auth.uploadProfilePicture(formData);
+        setProfileImage(res.profile_photo || null);
+        // Refetch profile to sync all info
+        const profileRes = await api.auth.getProfile();
+        const user = profileRes.user;
+        setUserInfo({
+          id: user._id,
+          name: user.username,
+          email: user.email,
+          joinDate: new Date(user.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' }),
+          totalPoints: user.points_balance,
+          profile_photo: user.profile_photo,
+          location: user.location,
+        });
+        setEditProfileData((prev) => ({ ...prev, profile_photo: null }));
+      } catch (err) {
+        setError(err.message || 'Failed to upload profile photo');
+      } finally {
+        setUploadingImage(false);
+      }
     }
   };
 
@@ -165,7 +184,9 @@ export const Profile = () => {
               <CardHeader className="text-center">
                 <div className="relative inline-block">
                   <div className="w-32 h-32 bg-[#EAE4D5] rounded-full flex items-center justify-center mx-auto relative overflow-hidden">
-                    {profileImage ? (
+                    {uploadingImage ? (
+                      <div className="w-full h-full flex items-center justify-center">Uploading...</div>
+                    ) : profileImage ? (
                       <img 
                         src={profileImage} 
                         alt="Profile" 
