@@ -9,7 +9,7 @@ const itemSchema = new mongoose.Schema({
   condition: { type: String },
   tags: [{ type: String }],
   images: [{ type: String }],
-  uploaded_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  uploaded_by: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
   points_value: { type: Number },
   status: { type: String, default: 'available' }, // available, 'swapped', 'removed'
 }, { timestamps: true });

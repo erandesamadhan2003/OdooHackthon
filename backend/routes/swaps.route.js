@@ -5,7 +5,7 @@ import {
   updateSwapStatus
 } from '../controllers/swaps.controller.js';
 
-import isAuthenticated from '../middleware/isAuthentication.js';
+import isAuthenticated from '../middlewares/isAuthentication.js';
 
 const router = express.Router();
 
