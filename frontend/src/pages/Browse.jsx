@@ -15,7 +15,9 @@ import {
   Clock,
   X,
   MessageCircle,
-  AlertCircle
+  AlertCircle,
+  Coins,
+  ArrowUpDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,16 +26,16 @@ import { Navbar } from '@/components/layouts/Navbar';
 import { Notification } from '@/components/ui/notification';
 import { fetchItems, setFilters, clearFilters } from '@/app/features/items/itemsSlice';
 import { requestSwap } from '@/app/features/swaps/swapsSlice';
+import { redeemPoints, getPointsBalance } from '@/app/features/points/pointsSlice';
 import { selectCategories } from '@/app/features/categories/categoriesSlice';
 
 export const Browse = () => {
   const dispatch = useDispatch();
   const { items, loading, error, filters } = useSelector((state) => state.items);
   const { requestLoading, requestError } = useSelector((state) => state.swaps);
+  const { balance: pointsBalance, redeemLoading, redeemError } = useSelector((state) => state.points);
   const categories = useSelector(selectCategories);
   const user = useSelector((state) => state.auth.user);
-
-
 
   // Local state
   const [viewMode, setViewMode] = useState('grid');
@@ -42,15 +44,19 @@ export const Browse = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('latest');
   const [showSwapModal, setShowSwapModal] = useState(false);
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [swapMessage, setSwapMessage] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [notification, setNotification] = useState({ show: false, type: 'success', message: '' });
 
-  // Fetch items on component mount
+  // Fetch items and points balance on component mount
   useEffect(() => {
     dispatch(fetchItems());
-  }, [dispatch]);
+    if (user) {
+      dispatch(getPointsBalance());
+    }
+  }, [dispatch, user]);
 
   // Price ranges for filtering
   const priceRanges = [
@@ -153,7 +159,7 @@ export const Browse = () => {
         message: swapMessage
       });
       
-      await dispatch(requestSwap({
+      const result = await dispatch(requestSwap({
         owner_id: ownerId,
         item_id: selectedItem._id,
         message: swapMessage
@@ -165,13 +171,61 @@ export const Browse = () => {
       setNotification({
         show: true,
         type: 'success',
-        message: 'Swap request sent successfully!'
+        message: result.message || 'Swap request sent successfully!'
       });
     } catch (error) {
+      console.error('Swap request error:', error);
       setNotification({
         show: true,
         type: 'error',
         message: error || 'Failed to send swap request'
+      });
+    }
+  };
+
+  // Handle points redemption
+  const handleRedeemPoints = async () => {
+    if (!user) {
+      setNotification({
+        show: true,
+        type: 'error',
+        message: 'Please login to redeem points'
+      });
+      return;
+    }
+
+    const itemPoints = getItemPoints(selectedItem);
+    
+    if (pointsBalance < itemPoints) {
+      setNotification({
+        show: true,
+        type: 'error',
+        message: `Not enough points. You have ${pointsBalance} points, but this item costs ${itemPoints} points.`
+      });
+      return;
+    }
+
+    try {
+      await dispatch(redeemPoints({
+        item_id: selectedItem._id,
+        points: itemPoints
+      })).unwrap();
+      
+      setShowOptionsModal(false);
+      setSelectedItem(null);
+      setNotification({
+        show: true,
+        type: 'success',
+        message: 'Item purchased successfully with points!'
+      });
+      
+      // Refresh points balance
+      dispatch(getPointsBalance());
+    } catch (error) {
+      setNotification({
+        show: true,
+        type: 'error',
+        message: error || 'Failed to redeem points'
       });
     }
   };
@@ -224,18 +278,24 @@ export const Browse = () => {
     setSortBy(e.target.value);
   };
 
-  // Open swap modal
-  const openSwapModal = (item) => {
+  // Open options modal
+  const openOptionsModal = (item) => {
     if (!user) {
       setNotification({
         show: true,
         type: 'error',
-        message: 'Please login to request a swap'
+        message: 'Please login to interact with items'
       });
       return;
     }
     
     setSelectedItem(item);
+    setShowOptionsModal(true);
+  };
+
+  // Open swap modal
+  const openSwapModal = () => {
+    setShowOptionsModal(false);
     setShowSwapModal(true);
   };
 
@@ -448,11 +508,11 @@ export const Browse = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                        onClick={() => openSwapModal(item)}
+                        onClick={() => openOptionsModal(item)}
                       className="border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
                         disabled={isUserOwner(item)}
                     >
-                        {isUserOwner(item) ? 'Your Item' : 'Swap'}
+                        {isUserOwner(item) ? 'Your Item' : 'Swap/Redeem'}
                     </Button>
                   </div>
                 </div>
@@ -472,12 +532,76 @@ export const Browse = () => {
         )}
       </div>
 
+      {/* Options Modal */}
+      {showOptionsModal && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-black">Choose Action</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowOptionsModal(false)}
+                className="p-1"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="mb-6">
+              <h4 className="font-medium text-black mb-2">Item: {getItemName(selectedItem)}</h4>
+              <p className="text-sm text-[#B6B09F] mb-2">{getItemPoints(selectedItem)} Points</p>
+              <p className="text-sm text-[#B6B09F]">Your Points Balance: {pointsBalance}</p>
+            </div>
+            
+            <div className="space-y-3">
+              <Button
+                onClick={openSwapModal}
+                className="w-full bg-black hover:bg-[#B6B09F] text-white flex items-center justify-center space-x-2"
+              >
+                <ArrowUpDown className="h-4 w-4" />
+                <span>Direct Swap Request</span>
+              </Button>
+              
+              <Button
+                onClick={handleRedeemPoints}
+                disabled={redeemLoading || pointsBalance < getItemPoints(selectedItem)}
+                className={`w-full flex items-center justify-center space-x-2 ${
+                  pointsBalance < getItemPoints(selectedItem) 
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                    : 'bg-green-600 hover:bg-green-700 text-white'
+                }`}
+              >
+                <Coins className="h-4 w-4" />
+                <span>
+                  {redeemLoading ? 'Redeeming...' : 'Redeem with Points'}
+                </span>
+              </Button>
+            </div>
+            
+            {redeemError && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600">{redeemError}</p>
+              </div>
+            )}
+            
+            {pointsBalance < getItemPoints(selectedItem) && (
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-700">
+                  Not enough points. You need {getItemPoints(selectedItem) - pointsBalance} more points to redeem this item.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Swap Modal */}
       {showSwapModal && selectedItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-black">Request Swap</h3>
+              <h3 className="text-lg font-semibold text-black">Direct Swap Request</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -525,7 +649,7 @@ export const Browse = () => {
                 disabled={requestLoading || !swapMessage.trim()}
                 className="flex-1 bg-black hover:bg-[#B6B09F] text-white"
               >
-                {requestLoading ? 'Sending...' : 'Send Request'}
+                {requestLoading ? 'Sending...' : 'Send Swap Request'}
               </Button>
             </div>
           </div>

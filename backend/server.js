@@ -13,7 +13,7 @@ import adminRoutes from './routes/admin.route.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8006;
+const PORT = process.env.PORT || 8004;
 
 app.get("/", (req, res) => res.status(200).json({
     message: "Backend Activated",

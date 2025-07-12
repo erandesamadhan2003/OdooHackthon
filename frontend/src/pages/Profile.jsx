@@ -88,8 +88,13 @@ export const Profile = () => {
         const purchases = txRes.filter(tx => tx.transaction_type === 'redeem' || tx.transaction_type === 'swap');
         setMyPurchases(purchases);
 
-        // 5. Fetch user swaps
-        dispatch(getUserSwaps());
+        // 5. Fetch user swaps with error handling
+        try {
+          await dispatch(getUserSwaps()).unwrap();
+        } catch (swapError) {
+          console.error('Failed to fetch swaps:', swapError);
+          // Don't fail the entire profile load if swaps fail
+        }
       } catch (err) {
         setError(err.message || 'Failed to load profile data');
       } finally {
@@ -98,6 +103,13 @@ export const Profile = () => {
     };
     fetchData();
   }, [dispatch]);
+
+  // Refresh swaps when swap status is updated
+  useEffect(() => {
+    if (userInfo?.id) {
+      dispatch(getUserSwaps());
+    }
+  }, [dispatch, userInfo?.id]);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -184,13 +196,19 @@ export const Profile = () => {
   // Handle swap status update
   const handleSwapStatusUpdate = async (swapId, status) => {
     try {
-      await dispatch(updateSwapStatus({ swapId, status })).unwrap();
+      const result = await dispatch(updateSwapStatus({ swapId, status })).unwrap();
       setNotification({
         show: true,
         type: 'success',
-        message: `Swap ${status} successfully`
+        message: result.message || `Swap ${status} successfully`
       });
+      
+      // Refresh swaps after status update
+      setTimeout(() => {
+        dispatch(getUserSwaps());
+      }, 1000);
     } catch (error) {
+      console.error('Update swap status error:', error);
       setNotification({
         show: true,
         type: 'error',
@@ -199,9 +217,69 @@ export const Profile = () => {
     }
   };
 
-  // Filter swaps by user role
-  const incomingSwaps = swaps.filter(swap => swap.owner_id._id === userInfo?.id);
-  const outgoingSwaps = swaps.filter(swap => swap.requester_id._id === userInfo?.id);
+  // Manual refresh function for swaps
+  const refreshSwaps = async () => {
+    try {
+      await dispatch(getUserSwaps()).unwrap();
+      setNotification({
+        show: true,
+        type: 'success',
+        message: 'Swap requests refreshed successfully'
+      });
+    } catch (error) {
+      console.error('Failed to refresh swaps:', error);
+      setNotification({
+        show: true,
+        type: 'error',
+        message: 'Failed to refresh swap requests'
+      });
+    }
+  };
+
+  // Filter swaps by user role with better error handling
+  const incomingSwaps = swaps.filter(swap => {
+    try {
+      const ownerId = swap.owner_id?._id || swap.owner_id;
+      const isIncoming = ownerId === userInfo?.id;
+      console.log('Swap filtering:', {
+        swapId: swap._id,
+        ownerId,
+        userInfoId: userInfo?.id,
+        isIncoming,
+        swap: swap
+      });
+      return isIncoming;
+    } catch (error) {
+      console.error('Error filtering incoming swap:', error, swap);
+      return false;
+    }
+  });
+  
+  const outgoingSwaps = swaps.filter(swap => {
+    try {
+      const requesterId = swap.requester_id?._id || swap.requester_id;
+      const isOutgoing = requesterId === userInfo?.id;
+      console.log('Swap filtering:', {
+        swapId: swap._id,
+        requesterId,
+        userInfoId: userInfo?.id,
+        isOutgoing,
+        swap: swap
+      });
+      return isOutgoing;
+    } catch (error) {
+      console.error('Error filtering outgoing swap:', error, swap);
+      return false;
+    }
+  });
+
+  console.log('Swap Data Summary:', {
+    totalSwaps: swaps.length,
+    incomingSwaps: incomingSwaps.length,
+    outgoingSwaps: outgoingSwaps.length,
+    userInfoId: userInfo?.id,
+    swaps: swaps
+  });
 
   // Helper function to get status color
   const getStatusColor = (status) => {
@@ -622,13 +700,30 @@ export const Profile = () => {
             {/* Incoming Swap Requests */}
             <Card className="bg-white border-[#B6B09F]/20 shadow-lg mt-6">
               <CardHeader>
-                <CardTitle className="text-black flex items-center">
-                  <MessageCircle className="w-5 h-5 mr-2 text-[#B6B09F]" />
-                  Incoming Swap Requests
-                </CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-black flex items-center">
+                    <MessageCircle className="w-5 h-5 mr-2 text-[#B6B09F]" />
+                    Incoming Swap Requests ({incomingSwaps.length})
+                  </CardTitle>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={refreshSwaps}
+                    disabled={swapsLoading}
+                    className="border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    {swapsLoading ? 'Refreshing...' : 'Refresh'}
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                {incomingSwaps.length === 0 ? (
+                {swapsLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B6B09F] mx-auto"></div>
+                    <p className="text-[#B6B09F] mt-2">Loading swap requests...</p>
+                  </div>
+                ) : incomingSwaps.length === 0 ? (
                   <div className="text-[#B6B09F]">No incoming swap requests.</div>
                 ) : (
                   <div className="space-y-4">
@@ -688,13 +783,30 @@ export const Profile = () => {
             {/* Outgoing Swap Requests */}
             <Card className="bg-white border-[#B6B09F]/20 shadow-lg mt-6">
               <CardHeader>
-                <CardTitle className="text-black flex items-center">
-                  <MessageCircle className="w-5 h-5 mr-2 text-[#B6B09F]" />
-                  Outgoing Swap Requests
-                </CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-black flex items-center">
+                    <MessageCircle className="w-5 h-5 mr-2 text-[#B6B09F]" />
+                    Outgoing Swap Requests ({outgoingSwaps.length})
+                  </CardTitle>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={refreshSwaps}
+                    disabled={swapsLoading}
+                    className="border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    {swapsLoading ? 'Refreshing...' : 'Refresh'}
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                {outgoingSwaps.length === 0 ? (
+                {swapsLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B6B09F] mx-auto"></div>
+                    <p className="text-[#B6B09F] mt-2">Loading swap requests...</p>
+                  </div>
+                ) : outgoingSwaps.length === 0 ? (
                   <div className="text-[#B6B09F]">No outgoing swap requests.</div>
                 ) : (
                   <div className="space-y-4">

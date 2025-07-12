@@ -4,6 +4,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 export const requestSwap = createAsyncThunk(
     'swaps/requestSwap',
     async ({ owner_id, item_id, message }, { rejectWithValue }) => {
+        console.log('Requesting swap:', { owner_id, item_id, message });    
         try {
             const response = await fetch('http://localhost:8004/api/swaps', {
                 method: 'POST',
@@ -13,9 +14,9 @@ export const requestSwap = createAsyncThunk(
                 body: JSON.stringify({ owner_id, item_id, message }),
                 credentials: 'include',
             });
-
+            
             const data = await response.json();
-
+            console.log('Swap response:', data);
             if (!response.ok) {
                 return rejectWithValue(data.error || 'Failed to request swap');
             }
@@ -80,22 +81,55 @@ export const updateSwapStatus = createAsyncThunk(
     }
 );
 
+// Get swap by ID async thunk
+export const getSwapById = createAsyncThunk(
+    'swaps/getSwapById',
+    async (swapId, { rejectWithValue }) => {
+        try {
+            const response = await fetch(`http://localhost:8004/api/swaps/${swapId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                return rejectWithValue(data.error || 'Failed to fetch swap details');
+            }
+
+            return data;
+        } catch (error) {
+            return rejectWithValue(error.message || 'Network error');
+        }
+    }
+);
+
 const swapsSlice = createSlice({
     name: 'swaps',
     initialState: {
         swaps: [],
+        currentSwap: null,
         loading: false,
         error: null,
         requestLoading: false,
         requestError: null,
         updateLoading: false,
         updateError: null,
+        detailLoading: false,
+        detailError: null,
     },
     reducers: {
         clearError: (state) => {
             state.error = null;
             state.requestError = null;
             state.updateError = null;
+            state.detailError = null;
+        },
+        clearCurrentSwap: (state) => {
+            state.currentSwap = null;
         },
         addSwap: (state, action) => {
             state.swaps.unshift(action.payload);
@@ -109,6 +143,9 @@ const swapsSlice = createSlice({
         removeSwap: (state, action) => {
             state.swaps = state.swaps.filter(swap => swap._id !== action.payload);
         },
+        clearSwaps: (state) => {
+            state.swaps = [];
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -120,6 +157,10 @@ const swapsSlice = createSlice({
             .addCase(requestSwap.fulfilled, (state, action) => {
                 state.requestLoading = false;
                 state.requestError = null;
+                // Add the new swap to the list if it exists
+                if (action.payload.swap) {
+                    state.swaps.unshift(action.payload.swap);
+                }
             })
             .addCase(requestSwap.rejected, (state, action) => {
                 state.requestLoading = false;
@@ -151,20 +192,40 @@ const swapsSlice = createSlice({
                 const index = state.swaps.findIndex(swap => swap._id === action.payload.swapId);
                 if (index !== -1) {
                     state.swaps[index].status = action.payload.status;
+                    // Update with the returned swap data if available
+                    if (action.payload.data && action.payload.data.swap) {
+                        state.swaps[index] = action.payload.data.swap;
+                    }
                 }
             })
             .addCase(updateSwapStatus.rejected, (state, action) => {
                 state.updateLoading = false;
                 state.updateError = action.payload;
+            })
+            // Get swap by ID cases
+            .addCase(getSwapById.pending, (state) => {
+                state.detailLoading = true;
+                state.detailError = null;
+            })
+            .addCase(getSwapById.fulfilled, (state, action) => {
+                state.detailLoading = false;
+                state.currentSwap = action.payload;
+                state.detailError = null;
+            })
+            .addCase(getSwapById.rejected, (state, action) => {
+                state.detailLoading = false;
+                state.detailError = action.payload;
             });
     },
 });
 
 export const { 
     clearError, 
+    clearCurrentSwap,
     addSwap, 
     updateSwapInList, 
-    removeSwap 
+    removeSwap,
+    clearSwaps
 } = swapsSlice.actions;
 
 export default swapsSlice.reducer; 
