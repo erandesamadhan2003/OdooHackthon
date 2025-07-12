@@ -10,10 +10,12 @@ import { loginUser, clearError } from '../../app/features/authentication/authSli
 export const Login = () => {
     const [formData, setFormData] = useState({
         email: '',
-        password: ''
+        password: '',
+        role: 'customer' // Default role
     })
     const [showPassword, setShowPassword] = useState(false)
     const navigate = useNavigate()
+    const user = useSelector(state => state.auth.user);
 
     // Redux state
     const dispatch = useDispatch()
@@ -35,7 +37,7 @@ export const Login = () => {
             return
         }
 
-        dispatch(loginUser({ email: formData.email, password: formData.password }))
+        dispatch(loginUser({ email: formData.email, password: formData.password, role: formData.role }))
     }
 
     // Handle successful login
@@ -51,6 +53,13 @@ export const Login = () => {
             dispatch(clearError())
         }
     }, [dispatch])
+
+    useEffect(() => {
+        if (user && user.role === 'admin') {
+            navigate('/admin');
+        }
+        // Optionally, redirect customers to home or profile
+    }, [user, navigate]);
 
     const handleSocialLogin = async (provider) => {
         try {
@@ -122,6 +131,18 @@ export const Login = () => {
                                 >
                                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                 </button>
+                            </div>
+
+                            {/* Role Selection */}
+                            <div className="flex items-center space-x-4 mt-4">
+                                <label className="flex items-center">
+                                    <input type="radio" name="role" value="customer" checked={formData.role === 'customer'} onChange={handleInputChange} />
+                                    <span className="ml-2">Customer</span>
+                                </label>
+                                <label className="flex items-center">
+                                    <input type="radio" name="role" value="admin" checked={formData.role === 'admin'} onChange={handleInputChange} />
+                                    <span className="ml-2">Admin</span>
+                                </label>
                             </div>
 
                             {/* Login Button */}

@@ -8,6 +8,7 @@ import itemsRoute from "./routes/items.route.js";
 import swapsRoute from "./routes/swaps.route.js";
 import transactionsRoute from "./routes/transactions.route.js";
 import pointsRoute from "./routes/points.route.js";
+import adminRoutes from './routes/admin.route.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use("/api/items", itemsRoute);
 app.use("/api/swaps", swapsRoute);
 app.use("/api/points", pointsRoute);
 app.use("/api/transactions", transactionsRoute);
+app.use('/api/admin', adminRoutes);
 
 app.listen(PORT, () => {
     connectDB(process.env.MONGO_URI);

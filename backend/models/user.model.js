@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema({
   profile_photo: { type: String },
   location: { type: String },
   points_balance: { type: Number, default: 0 },
+  status: { type: String, default: 'active' }, // active, banned
+  role: {type: String, default: "customer"}
 }, {timestamps: true});
 
 export const User = mongoose.model("user", userSchema);
