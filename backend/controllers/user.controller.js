@@ -82,3 +82,41 @@ export const verifyToken = async (req, res) => {
         return res.status(400).json({ success: false, message: "Token not verified" });
     }
 };
+
+export const getUserProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.id).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ status: "error", error: "User not found" });
+        }
+
+        res.status(200).json({ status: "success", user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ status: "error", error: "Server error" });
+    }
+};
+
+export const updateUserProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.id);
+
+        if (!user) {
+            return res.status(404).json({ status: "error", error: "User not found" });
+        }
+
+        const { username, profile_photo, location } = req.body;
+
+        if (username) user.username = username;
+        if (profile_photo) user.profile_photo = profile_photo;
+        if (location) user.location = location;
+
+        await user.save();
+
+        res.status(200).json({ status: "success", message: "Profile updated", user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ status: "error", error: "Server error" });
+    }
+};
