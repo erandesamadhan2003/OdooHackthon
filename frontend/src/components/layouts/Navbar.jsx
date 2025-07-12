@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { ShoppingBag, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { ShoppingBag, LogIn, UserPlus, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { logoutUser } from '@/app/features/authentication/authSlice';
 
 export const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, loading, username } = useSelector((state) => state.auth);
+  const { isAuthenticated, loading, username, user } = useSelector((state) => state.auth);
 
   // Handle logout
   const handleLogout = () => {
@@ -32,6 +32,12 @@ export const Navbar = () => {
             <Link to="/browse" className="text-black hover:text-[#B6B09F] transition-colors">Browse</Link>
             {isAuthenticated && (
               <Link to="/profile" className="text-black hover:text-[#B6B09F] transition-colors">Profile</Link>
+            )}
+            {isAuthenticated && user?.role === 'admin' && (
+              <Link to="/admin" className="text-black hover:text-[#B6B09F] transition-colors flex items-center">
+                <Shield className="h-4 w-4 mr-1" />
+                Admin
+              </Link>
             )}
           </nav>
 

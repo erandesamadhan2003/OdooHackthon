@@ -8,7 +8,8 @@ import { Browse } from './pages/Browse'
 import { ItemListing } from './pages/ItemListing'
 import { ItemDetail } from './pages/ItemDetail'
 import { ProductDetailPage } from './pages/ProductDetailPage'
-import Admin from './pages/Admin';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { AdminRoute } from './components/auth/AdminRoute';
 
 const router = createBrowserRouter([
   {
@@ -44,7 +45,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/admin',
-    element: <Admin />
+    element: <AdminRoute><AdminDashboard /></AdminRoute>
   },
 ])
 

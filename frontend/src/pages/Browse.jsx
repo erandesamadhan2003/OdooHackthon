@@ -369,11 +369,11 @@ export const Browse = () => {
 
         {/* Items Grid/List */}
         {!loading && !error && (
-          <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
-            {filteredItems.map((item) => (
+        <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+          {filteredItems.map((item) => (
               <Card key={item._id} className={`bg-white border-[#B6B09F]/20 hover:shadow-lg transition-shadow ${viewMode === 'list' ? 'flex' : ''}`}>
-                <CardContent className={`p-4 ${viewMode === 'list' ? 'flex space-x-4' : ''}`}>
-                  <div className={`${viewMode === 'list' ? 'w-48 h-48' : 'aspect-[3/4]'} bg-[#EAE4D5] rounded-lg mb-4 flex items-center justify-center relative group`}>
+              <CardContent className={`p-4 ${viewMode === 'list' ? 'flex space-x-4' : ''}`}>
+                <div className={`${viewMode === 'list' ? 'w-48 h-48' : 'aspect-[3/4]'} bg-[#EAE4D5] rounded-lg mb-4 flex items-center justify-center relative group`}>
                     {item.images && item.images.length > 0 ? (
                       <img 
                         src={item.images[0]} 
@@ -383,15 +383,15 @@ export const Browse = () => {
                     ) : (
                       <span className="text-[#B6B09F] text-sm">No Image</span>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                       className="absolute top-2 right-2 p-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80"
-                    >
-                      <Heart className="h-4 w-4 text-[#B6B09F]" />
-                    </Button>
-                  </div>
-                                      <div className={`space-y-2 ${viewMode === 'list' ? 'flex-1' : ''}`}>
+                  >
+                    <Heart className="h-4 w-4 text-[#B6B09F]" />
+                  </Button>
+                </div>
+                <div className={`space-y-2 ${viewMode === 'list' ? 'flex-1' : ''}`}>
                       <h3 className="font-semibold text-black">{getItemName(item)}</h3>
                       <p className="text-sm text-[#B6B09F]">{getItemProperty(item, 'description', 'No description available')}</p>
                       
@@ -414,51 +414,51 @@ export const Browse = () => {
                         )}
                       </div>
                       
-                      <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-black">
                           {getItemPoints(item)} Points
                         </span>
                         {item.condition && (
-                          <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-1">
                             <span className={`text-xs px-2 py-1 rounded-full font-medium ${getConditionColor(item.condition)}`}>
                               {item.condition}
                             </span>
-                          </div>
+                    </div>
                         )}
-                      </div>
-                    <div className="flex items-center space-x-4 text-sm text-[#B6B09F]">
-                      <div className="flex items-center space-x-1">
+                  </div>
+                  <div className="flex items-center space-x-4 text-sm text-[#B6B09F]">
+                    <div className="flex items-center space-x-1">
                         <Clock className="h-3 w-3" />
                         <span>
                           {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Unknown date'}
                         </span>
-                      </div>
+                    </div>
                       {item.uploaded_by && (
-                        <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-1">
                           <span className="text-xs">by {item.uploaded_by.username || 'Unknown user'}</span>
                         </div>
                       )}
-                    </div>
-                    <div className="flex space-x-2">
-                      <Link to={`/item/${item._id}`} className="flex-1">
-                        <Button className="w-full bg-black hover:bg-[#B6B09F] text-white">
-                          View Details
-                        </Button>
-                      </Link>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => openSwapModal(item)}
-                        className="border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
-                        disabled={isUserOwner(item)}
-                      >
-                        {isUserOwner(item) ? 'Your Item' : 'Swap'}
-                      </Button>
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <div className="flex space-x-2">
+                      <Link to={`/item/${item._id}`} className="flex-1">
+                      <Button className="w-full bg-black hover:bg-[#B6B09F] text-white">
+                        View Details
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                        onClick={() => openSwapModal(item)}
+                      className="border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
+                        disabled={isUserOwner(item)}
+                    >
+                        {isUserOwner(item) ? 'Your Item' : 'Swap'}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
           </div>
         )}
 

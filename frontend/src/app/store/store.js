@@ -5,6 +5,7 @@ import categoriesReducer from '../features/categories/categoriesSlice.js'
 import pointsReducer from '../features/points/pointsSlice.js'
 import swapsReducer from '../features/swaps/swapsSlice.js'
 import transactionsReducer from '../features/transactions/transactionsSlice.js'
+import adminReducer from '../features/admin/adminSlice.js'
 
 export const store = configureStore({
     reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
         categories: categoriesReducer,
         points: pointsReducer,
         swaps: swapsReducer,
-        transactions: transactionsReducer
+        transactions: transactionsReducer,
+        admin: adminReducer
     },
 });
