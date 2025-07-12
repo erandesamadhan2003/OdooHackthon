@@ -1,12 +1,42 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { Search, ShoppingBag, Heart, Star, ChevronLeft, ChevronRight, Users, Shield, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Navbar } from '@/components/layouts/Navbar';
+import { ItemCard } from '@/components/items/ItemCard';
+import { FilterBar } from '@/components/items/FilterBar';
+import { fetchItems, setFilters, clearFilters } from '@/app/features/items/itemsSlice';
 
 export const Home = () => {
+  const dispatch = useDispatch();
+  const { items, loading, error, filters } = useSelector((state) => state.items);
+
+  // Fetch items on component mount
+  useEffect(() => {
+    dispatch(fetchItems());
+  }, [dispatch]);
+
+  // Handle filter changes
+  const handleFilterChange = (newFilters) => {
+    dispatch(setFilters(newFilters));
+    dispatch(fetchItems({ ...filters, ...newFilters }));
+  };
+
+  // Handle clear filters
+  const handleClearFilters = () => {
+    dispatch(clearFilters());
+    dispatch(fetchItems());
+  };
+
+  // Handle item click
+  const handleItemClick = (item) => {
+    // Navigate to item detail page or open modal
+    console.log('Item clicked:', item);
+  };
+
   const categories = [
     { name: 'Dresses', image: '/api/placeholder/200/200' },
     { name: 'Tops & Shirts', image: '/api/placeholder/200/200' },
@@ -16,23 +46,8 @@ export const Home = () => {
     { name: 'Accessories', image: '/api/placeholder/200/200' }
   ];
 
-  const featuredItems = [
-    { id: 1, name: 'Vintage Denim Jacket', price: '450 Points', image: '/api/placeholder/300/400', rating: 4.8 },
-    { id: 2, name: 'Floral Summer Dress', price: '320 Points', image: '/api/placeholder/300/400', rating: 4.9 },
-    { id: 3, name: 'Leather Ankle Boots', price: '680 Points', image: '/api/placeholder/300/400', rating: 4.7 },
-    { id: 4, name: 'Cashmere Sweater', price: '890 Points', image: '/api/placeholder/300/400', rating: 4.8 }
-  ];
-
-  const products = [
-    { id: 1, name: 'Vintage Blazer', price: '550 Points', image: '/api/placeholder/250/350', rating: 4.6 },
-    { id: 2, name: 'Silk Scarf', price: '280 Points', image: '/api/placeholder/250/350', rating: 4.7 },
-    { id: 3, name: 'Designer Jeans', price: '750 Points', image: '/api/placeholder/250/350', rating: 4.8 },
-    { id: 4, name: 'Wool Winter Coat', price: '1200 Points', image: '/api/placeholder/250/350', rating: 4.9 },
-    { id: 5, name: 'Summer Blouse', price: '350 Points', image: '/api/placeholder/250/350', rating: 4.5 },
-    { id: 6, name: 'Leather Handbag', price: '650 Points', image: '/api/placeholder/250/350', rating: 4.7 },
-    { id: 7, name: 'Knit Cardigan', price: '480 Points', image: '/api/placeholder/250/350', rating: 4.6 },
-    { id: 8, name: 'Midi Skirt', price: '420 Points', image: '/api/placeholder/250/350', rating: 4.8 }
-  ];
+  // Get featured items (first 4 items)
+  const featuredItems = items.slice(0, 4);
 
   return (
     <div className="min-h-screen bg-[#F2F2F2]">
@@ -64,25 +79,18 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* Search Bar */}
-      <section className="px-4 sm:px-6 lg:px-8 py-8 bg-white">
-        <div className="max-w-2xl mx-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#B6B09F]" />
-            <Input
-              type="text"
-              placeholder="Search for clothes, brands, or styles..."
-              className="pl-10 pr-4 py-3 w-full border-[#B6B09F]/30 focus:border-[#B6B09F] focus:ring-1 focus:ring-[#B6B09F]"
-            />
-          </div>
-        </div>
-      </section>
+      {/* Filter Bar */}
+      <FilterBar 
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+      />
 
-      {/* Carousel of Featured Items */}
+      {/* Featured Items Section */}
       <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#F2F2F2]">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-black">Featured Clothes</h2>
+            <h2 className="text-3xl font-bold text-black">Featured Items</h2>
             <div className="flex space-x-2">
               <Button variant="outline" size="sm" className="p-2 border-[#B6B09F] text-[#B6B09F] hover:bg-[#B6B09F] hover:text-white">
                 <ChevronLeft className="h-4 w-4" />
@@ -92,27 +100,43 @@ export const Home = () => {
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredItems.map((item) => (
-              <Card key={item.id} className="bg-white border-[#B6B09F]/20 hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="aspect-[3/4] bg-[#EAE4D5] rounded-lg mb-4 flex items-center justify-center">
-                    <span className="text-[#B6B09F] text-sm">Image</span>
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-black">{item.name}</h3>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-black">{item.price}</span>
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-[#B6B09F]">{item.rating}</span>
-                      </div>
+          
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, index) => (
+                <Card key={index} className="bg-white border-[#B6B09F]/20 animate-pulse">
+                  <CardContent className="p-4">
+                    <div className="aspect-square bg-gray-200 rounded-lg mb-4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-600">Error loading items: {error}</p>
+              <Button onClick={() => dispatch(fetchItems())} className="mt-4">
+                Try Again
+              </Button>
+            </div>
+          ) : featuredItems.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredItems.map((item) => (
+                <ItemCard 
+                  key={item._id} 
+                  item={item} 
+                  onItemClick={handleItemClick}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-[#B6B09F]">No featured items available</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -193,41 +217,47 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* Product Listings */}
+      {/* All Items Section */}
       <section className="px-4 sm:px-6 lg:px-8 py-16 bg-[#F2F2F2]">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-black mb-12">Latest Clothing Listings</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <Card key={product.id} className="bg-white border-[#B6B09F]/20 hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="aspect-[3/4] bg-[#EAE4D5] rounded-lg mb-4 flex items-center justify-center relative group">
-                    <span className="text-[#B6B09F] text-sm">Image</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Heart className="h-4 w-4 text-[#B6B09F]" />
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-black">{product.name}</h3>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-black">{product.price}</span>
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-[#B6B09F]">{product.rating}</span>
-                      </div>
+          
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, index) => (
+                <Card key={index} className="bg-white border-[#B6B09F]/20 animate-pulse">
+                  <CardContent className="p-4">
+                    <div className="aspect-square bg-gray-200 rounded-lg mb-4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                     </div>
-                    <Button className="w-full bg-black hover:bg-[#B6B09F] text-white">
-                      View Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-600">Error loading items: {error}</p>
+              <Button onClick={() => dispatch(fetchItems())} className="mt-4">
+                Try Again
+              </Button>
+            </div>
+          ) : items.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {items.map((item) => (
+                <ItemCard 
+                  key={item._id} 
+                  item={item} 
+                  onItemClick={handleItemClick}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-[#B6B09F]">No items available</p>
+            </div>
+          )}
         </div>
       </section>
 
