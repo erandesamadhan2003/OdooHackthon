@@ -13,11 +13,18 @@ import {
   ArrowUpDown,
   Calendar,
   Check,
-  X
+  X,
+  Plus,
+  Eye,
+  Heart,
+  Package,
+  ShoppingCart,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Navbar } from '@/components/layouts/Navbar';
 
 export const Profile = () => {
   const [profileImage, setProfileImage] = useState(null);
@@ -30,6 +37,22 @@ export const Profile = () => {
     itemsSwapped: 23,
     rating: 4.8
   });
+
+  // Mock data for user's listings
+  const myListings = [
+    { id: 1, name: 'Vintage Denim Jacket', points: 450, image: '/api/placeholder/200/250', status: 'active', views: 23, likes: 5 },
+    { id: 2, name: 'Designer Handbag', points: 680, image: '/api/placeholder/200/250', status: 'active', views: 45, likes: 12 },
+    { id: 3, name: 'Silk Blouse', points: 320, image: '/api/placeholder/200/250', status: 'sold', views: 18, likes: 8 },
+    { id: 4, name: 'Leather Boots', points: 750, image: '/api/placeholder/200/250', status: 'active', views: 31, likes: 9 }
+  ];
+
+  // Mock data for user's purchases
+  const myPurchases = [
+    { id: 5, name: 'Cashmere Sweater', points: 890, image: '/api/placeholder/200/250', purchaseDate: '2 days ago', rating: 4.8 },
+    { id: 6, name: 'Wool Coat', points: 1200, image: '/api/placeholder/200/250', purchaseDate: '1 week ago', rating: 4.9 },
+    { id: 7, name: 'Summer Dress', points: 420, image: '/api/placeholder/200/250', purchaseDate: '2 weeks ago', rating: 4.7 },
+    { id: 8, name: 'Sneakers', points: 350, image: '/api/placeholder/200/250', purchaseDate: '3 weeks ago', rating: 4.5 }
+  ];
 
   // Mock transaction data
   const transactions = [
@@ -100,23 +123,7 @@ export const Profile = () => {
   return (
     <div className="min-h-screen bg-[#F2F2F2]">
       {/* Header */}
-      <header className="bg-white border-b border-[#B6B09F]/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center">
-                <ArrowUpDown className="h-8 w-8 text-[#B6B09F]" />
-                <span className="ml-2 text-xl font-bold text-black">ReWear</span>
-              </Link>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <Link to="/" className="text-black hover:text-[#B6B09F] transition-colors">Home</Link>
-              <Link to="/browse" className="text-black hover:text-[#B6B09F] transition-colors">Browse</Link>
-              <Link to="/profile" className="text-[#B6B09F] font-medium">Profile</Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -325,6 +332,137 @@ export const Profile = () => {
                       Browse Swaps
                     </Button>
                   </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* My Listings Section */}
+            <Card className="bg-white border-[#B6B09F]/20 shadow-lg mt-6">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-black flex items-center">
+                    <Package className="w-5 h-5 mr-2 text-[#B6B09F]" />
+                    My Listings
+                  </CardTitle>
+                  <Link to="/list-item">
+                    <Button size="sm" className="bg-black hover:bg-[#B6B09F] text-white">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add New
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {myListings.map((item) => (
+                    <Card key={item.id} className="bg-[#F2F2F2] border-[#B6B09F]/20">
+                      <CardContent className="p-4">
+                        <div className="flex space-x-4">
+                          <div className="w-20 h-20 bg-[#EAE4D5] rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span className="text-[#B6B09F] text-xs">Image</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between">
+                              <h3 className="font-semibold text-black text-sm truncate">{item.name}</h3>
+                              <div className={`px-2 py-1 rounded-full text-xs font-medium ml-2 ${
+                                item.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {item.status}
+                              </div>
+                            </div>
+                            <p className="text-lg font-bold text-black mt-1">{item.points} Points</p>
+                            <div className="flex items-center justify-between text-xs text-[#B6B09F] mt-2">
+                              <div className="flex items-center space-x-3">
+                                <div className="flex items-center space-x-1">
+                                  <Eye className="h-3 w-3" />
+                                  <span>{item.views}</span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <Heart className="h-3 w-3" />
+                                  <span>{item.likes}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex space-x-2 mt-2">
+                              <Link to={`/item/${item.id}`} className="flex-1">
+                                <Button size="sm" className="w-full bg-black hover:bg-[#B6B09F] text-white text-xs">
+                                  View
+                                </Button>
+                              </Link>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="flex-1 border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white text-xs"
+                              >
+                                Edit
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* My Purchases Section */}
+            <Card className="bg-white border-[#B6B09F]/20 shadow-lg mt-6">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-black flex items-center">
+                    <ShoppingCart className="w-5 h-5 mr-2 text-[#B6B09F]" />
+                    My Purchases
+                  </CardTitle>
+                  <Link to="/browse">
+                    <Button size="sm" variant="outline" className="border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white">
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Browse More
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {myPurchases.map((item) => (
+                    <Card key={item.id} className="bg-[#F2F2F2] border-[#B6B09F]/20">
+                      <CardContent className="p-4">
+                        <div className="flex space-x-4">
+                          <div className="w-20 h-20 bg-[#EAE4D5] rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span className="text-[#B6B09F] text-xs">Image</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-black text-sm truncate">{item.name}</h3>
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-lg font-bold text-black">{item.points} Points</p>
+                              <div className="flex items-center space-x-1">
+                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                <span className="text-xs text-[#B6B09F]">{item.rating}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-1 text-xs text-[#B6B09F] mt-2">
+                              <Clock className="h-3 w-3" />
+                              <span>Purchased {item.purchaseDate}</span>
+                            </div>
+                            <div className="flex space-x-2 mt-2">
+                              <Link to={`/item/${item.id}`} className="flex-1">
+                                <Button size="sm" className="w-full bg-black hover:bg-[#B6B09F] text-white text-xs">
+                                  View
+                                </Button>
+                              </Link>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="flex-1 border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white text-xs"
+                              >
+                                Rate
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </CardContent>
             </Card>

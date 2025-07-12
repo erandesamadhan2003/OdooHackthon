@@ -30,6 +30,9 @@ export const Navbar = () => {
           <nav className="hidden md:flex space-x-8">
             <Link to="/" className="text-black hover:text-[#B6B09F] transition-colors">Home</Link>
             <Link to="/browse" className="text-black hover:text-[#B6B09F] transition-colors">Browse</Link>
+            {isAuthenticated && (
+              <Link to="/profile" className="text-black hover:text-[#B6B09F] transition-colors">Profile</Link>
+            )}
             {!isAuthenticated && (
               <>
                 <Link to="/login" className="text-black hover:text-[#B6B09F] transition-colors">Login</Link>
