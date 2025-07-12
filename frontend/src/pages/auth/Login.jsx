@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { useSignIn } from '@clerk/clerk-react'
 import { Eye, EyeOff, User, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +14,6 @@ export const Login = () => {
     })
     const [showPassword, setShowPassword] = useState(false)
     const navigate = useNavigate()
-    const { signIn } = useSignIn()
 
     // Redux state
     const dispatch = useDispatch()
@@ -67,21 +65,21 @@ export const Login = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-blue-50 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-[#F2F2F2] p-4">
             <div className="w-full max-w-md">
-                <Card className="bg-white/90 border-gray-200 backdrop-blur-sm shadow-2xl">
+                <Card className="bg-white border-[#B6B09F]/20 shadow-2xl">
                     <CardContent className="p-8">
                         {/* Avatar Circle */}
                         <div className="flex justify-center mb-8">
-                            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center border-2 border-blue-200 shadow-lg">
-                                <User className="w-10 h-10 text-blue-600" />
+                            <div className="w-20 h-20 bg-[#EAE4D5] rounded-full flex items-center justify-center border-2 border-[#B6B09F]/30 shadow-lg">
+                                <User className="w-10 h-10 text-[#B6B09F]" />
                             </div>
                         </div>
 
                         {/* Welcome Text */}
                         <div className="text-center mb-8">
-                            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-                            <p className="text-gray-600">Sign in to your account to continue</p>
+                            <h1 className="text-2xl font-bold text-black mb-2">Welcome Back</h1>
+                            <p className="text-[#B6B09F]">Sign in to your account to continue</p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
@@ -100,7 +98,7 @@ export const Login = () => {
                                     value={formData.email}
                                     onChange={handleInputChange}
                                     autoComplete="email"
-                                    className="h-12 bg-white border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm"
+                                    className="h-12 bg-white border-[#B6B09F]/30 text-black placeholder-[#B6B09F] rounded-lg focus:border-[#B6B09F] focus:ring-2 focus:ring-[#B6B09F]/20 shadow-sm"
                                     required
                                 />
                             </div>
@@ -114,15 +112,15 @@ export const Login = () => {
                                     value={formData.password}
                                     onChange={handleInputChange}
                                     autoComplete="current-password"
-                                    className="h-12 bg-white border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm pr-10"
+                                    className="h-12 bg-white border-[#B6B09F]/30 text-black placeholder-[#B6B09F] rounded-lg focus:border-[#B6B09F] focus:ring-2 focus:ring-[#B6B09F]/20 shadow-sm pr-10"
                                     required
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#B6B09F] hover:text-black transition-colors"
                                 >
-                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                 </button>
                             </div>
 
@@ -130,7 +128,7 @@ export const Login = () => {
                             <Button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl mt-8"
+                                className="w-full h-12 bg-black hover:bg-[#B6B09F] text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl mt-8"
                             >
                                 {loading ? (
                                     <div className="flex items-center justify-center">
@@ -159,7 +157,7 @@ export const Login = () => {
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="w-full h-12 bg-white hover:bg-gray-50 text-gray-700 border-gray-300 rounded-lg flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200"
+                                className="w-full h-12 bg-white hover:bg-[#F2F2F2] text-black border-[#B6B09F]/30 rounded-lg flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200"
                                 onClick={() => handleSocialLogin('google')}
                             >
                                 <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -200,9 +198,9 @@ export const Login = () => {
 
                         {/* Link to Signup */}
                         <div className="text-center mt-8">
-                            <p className="text-gray-600 text-sm">
+                            <p className="text-[#B6B09F] text-sm">
                                 Don't have an account?{' '}
-                                <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium underline">
+                                <Link to="/signup" className="text-black hover:text-[#B6B09F] font-medium underline">
                                     Create account
                                 </Link>
                             </p>
