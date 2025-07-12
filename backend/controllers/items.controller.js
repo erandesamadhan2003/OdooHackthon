@@ -7,13 +7,14 @@ export const getAllItems = async (req, res) => {
   try {
     // Add this line:
     console.log("GET /api/items called");
-    const { category, size, condition, search } = req.query;
+    const { category, size, condition, search, uploaded_by } = req.query;
 
     const filter = {};
     if (category) filter.category = category;
     if (size) filter.size = size;
     if (condition) filter.condition = condition;
     if (search) filter.title = { $regex: search, $options: "i" };
+    if (uploaded_by) filter.uploaded_by = uploaded_by;
 
     const items = await Item.find(filter).populate(
       "uploaded_by",

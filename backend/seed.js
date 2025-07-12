@@ -16,39 +16,46 @@ function randomChoice(arr) {
 async function seed() {
   await mongoose.connect(MONGO_URI);
 
-  // Clear existing data
-  await User.deleteMany({});
+  // DO NOT TOUCH USERS
+  const userDocs = await User.find({});
+  if (userDocs.length === 0) {
+    console.error("No users found in the database. Please seed users first.");
+    process.exit(1);
+  }
+
+  // Clear only items, swaps, transactions
   await Item.deleteMany({});
   await Swap.deleteMany({});
   await Transaction.deleteMany({});
 
-  // Create users
-  const users = [];
-  for (let i = 0; i < 20; i++) {
-    users.push({
-      username: `user${i}`,
-      email: `user${i}@example.com`,
-      password: `password${i}`,
-      points_balance: Math.floor(Math.random() * 2000),
-      location: `City${i % 5}`
-    });
-  }
-  const userDocs = await User.insertMany(users);
+  // Clothing categories and image URLs
+  const categories = [
+    { name: "T-Shirts", url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f" },
+    { name: "Shorts", url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f" },
+    { name: "Pants", url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c" },
+    { name: "Jackets", url: "https://images.unsplash.com/photo-1469398715555-76331a6c7c9b" },
+    { name: "Dresses", url: "https://images.unsplash.com/photo-1517841905240-472988babdf9" },
+    { name: "Shoes", url: "https://images.unsplash.com/photo-1519864600265-abb23847ef2c" },
+    { name: "Skirts", url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f" },
+    { name: "Sweaters", url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f" },
+    { name: "Hoodies", url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f" },
+    { name: "Blazers", url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f" }
+  ];
 
-  // Create items
-  const categories = ["Clothes", "Books", "Electronics", "Toys", "Shoes"];
+  // Create items (all clothing categories)
   const items = [];
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 200; i++) {
     const uploader = randomChoice(userDocs);
+    const cat = randomChoice(categories);
     items.push({
-      title: `Item ${i}`,
-      description: `Description for item ${i}`,
-      category: randomChoice(categories),
-      type: `Type${i % 4}`,
-      size: `${36 + (i % 5)}`,
-      condition: randomChoice(["New", "Good", "Used"]),
-      tags: ["tag1", "tag2"],
-      images: [],
+      title: `${cat.name} ${i}`,
+      description: `A nice ${cat.name.toLowerCase()} for your wardrobe.`,
+      category: cat.name,
+      type: cat.name,
+      size: `${36 + (i % 8)}`,
+      condition: randomChoice(["New", "Good", "Used", "Like New", "Worn" ]),
+      tags: [cat.name.toLowerCase(), "fashion", "sustainable"],
+      images: [cat.url],
       uploaded_by: uploader._id,
       points_value: Math.floor(Math.random() * 500) + 50
     });
@@ -57,7 +64,7 @@ async function seed() {
 
   // Create swaps
   const swaps = [];
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 100; i++) {
     const requester = randomChoice(userDocs);
     let owner = randomChoice(userDocs);
     while (owner._id.equals(requester._id)) {
@@ -69,15 +76,15 @@ async function seed() {
       owner_id: owner._id,
       item_id: item._id,
       status: randomChoice(["pending", "accepted", "declined"]),
-      message: `Swap message ${i}`
+      message: `Swap request for ${item.title}`
     });
   }
-  const swapDocs = await Swap.insertMany(swaps);
+  await Swap.insertMany(swaps);
 
   // Create transactions
   const txTypes = ["swap", "redeem", "earn"];
   const transactions = [];
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 300; i++) {
     const user = randomChoice(userDocs);
     const item = randomChoice(itemDocs);
     transactions.push({
@@ -85,12 +92,12 @@ async function seed() {
       item_id: item._id,
       transaction_type: randomChoice(txTypes),
       points: Math.floor(Math.random() * 300) + 10,
-      description: `Transaction ${i}`
+      description: `Transaction for ${item.title}`
     });
   }
   await Transaction.insertMany(transactions);
 
-  console.log("Large, synchronized sample data seeded!");
+  console.log("Large, synchronized sample data for items, swaps, and transactions seeded!");
   process.exit();
 }
 

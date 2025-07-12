@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Camera, 
@@ -25,82 +25,71 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Navbar } from '@/components/layouts/Navbar';
+import api from '../services/api';
 
 export const Profile = () => {
   const [profileImage, setProfileImage] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [userInfo, setUserInfo] = useState({
-    name: 'xyz',
-    email: 'xyz@email.com',
-    joinDate: 'January 2024',
-    totalPoints: 1250,
-    itemsSwapped: 23,
-    rating: 4.8
-  });
+  const [userInfo, setUserInfo] = useState(null);
+  const [myListings, setMyListings] = useState([]);
+  const [myPurchases, setMyPurchases] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const [showAllListings, setShowAllListings] = useState(false);
+  const [showAllPurchases, setShowAllPurchases] = useState(false);
+  const [editProfileData, setEditProfileData] = useState(null);
+  const [savingProfile, setSavingProfile] = useState(false);
 
-  // Mock data for user's listings
-  const myListings = [
-    { id: 1, name: 'Vintage Denim Jacket', points: 450, image: '/api/placeholder/200/250', status: 'active', views: 23, likes: 5 },
-    { id: 2, name: 'Designer Handbag', points: 680, image: '/api/placeholder/200/250', status: 'active', views: 45, likes: 12 },
-    { id: 3, name: 'Silk Blouse', points: 320, image: '/api/placeholder/200/250', status: 'sold', views: 18, likes: 8 },
-    { id: 4, name: 'Leather Boots', points: 750, image: '/api/placeholder/200/250', status: 'active', views: 31, likes: 9 }
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // 1. Fetch user profile
+        const profileRes = await api.auth.getProfile();
+        const user = profileRes.user;
+        setUserInfo({
+          id: user._id,
+          name: user.username,
+          email: user.email,
+          joinDate: new Date(user.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' }),
+          totalPoints: user.points_balance,
+          profile_photo: user.profile_photo,
+          location: user.location,
+        });
+        setProfileImage(user.profile_photo || null);
+        setEditProfileData({
+          name: user.username,
+          email: user.email,
+          location: user.location || '',
+        });
 
-  // Mock data for user's purchases
-  const myPurchases = [
-    { id: 5, name: 'Cashmere Sweater', points: 890, image: '/api/placeholder/200/250', purchaseDate: '2 days ago', rating: 4.8 },
-    { id: 6, name: 'Wool Coat', points: 1200, image: '/api/placeholder/200/250', purchaseDate: '1 week ago', rating: 4.9 },
-    { id: 7, name: 'Summer Dress', points: 420, image: '/api/placeholder/200/250', purchaseDate: '2 weeks ago', rating: 4.7 },
-    { id: 8, name: 'Sneakers', points: 350, image: '/api/placeholder/200/250', purchaseDate: '3 weeks ago', rating: 4.5 }
-  ];
+        // 2. Fetch my listings (items uploaded by user)
+        const itemsRes = await api.items.getAllItems({ uploaded_by: user._id });
+        setMyListings(itemsRes);
 
-  // Mock transaction data
-  const transactions = [
-    {
-      id: 1,
-      type: 'earned',
-      item: 'Vintage Denim Jacket',
-      points: 450,
-      date: '2025-01-10',
-      status: 'completed'
-    },
-    {
-      id: 2,
-      type: 'spent',
-      item: 'Floral Summer Dress',
-      points: 320,
-      date: '2025-01-08',
-      status: 'completed'
-    },
-    {
-      id: 3,
-      type: 'earned',
-      item: 'Leather Handbag',
-      points: 650,
-      date: '2025-01-05',
-      status: 'completed'
-    },
-    {
-      id: 4,
-      type: 'spent',
-      item: 'Wool Winter Coat',
-      points: 1200,
-      date: '2025-01-03',
-      status: 'completed'
-    },
-    {
-      id: 5,
-      type: 'earned',
-      item: 'Designer Jeans',
-      points: 750,
-      date: '2024-12-28',
-      status: 'pending'
-    }
-  ];
+        // 3. Fetch transactions
+        const txRes = await api.transactions.getUserTransactions();
+        setTransactions(txRes);
+
+        // 4. My Purchases: filter transactions for type 'redeem' or 'swap'
+        const purchases = txRes.filter(tx => tx.transaction_type === 'redeem' || tx.transaction_type === 'swap');
+        setMyPurchases(purchases);
+      } catch (err) {
+        setError(err.message || 'Failed to load profile data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      setEditProfileData((prev) => ({ ...prev, profile_photo: file }));
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileImage(e.target.result);
@@ -109,22 +98,65 @@ export const Profile = () => {
     }
   };
 
-  const handleSaveProfile = () => {
-    setIsEditing(false);
-    // Here you would typically save to backend
-    console.log('Profile saved:', userInfo);
+  const handleSaveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      // Save text fields
+      await api.auth.updateProfile({
+        username: editProfileData.name,
+        email: editProfileData.email,
+        location: editProfileData.location,
+      });
+      // Save profile photo if changed
+      if (editProfileData.profile_photo && editProfileData.profile_photo instanceof File) {
+        const formData = new FormData();
+        formData.append('profile_picture', editProfileData.profile_photo);
+        await api.auth.uploadProfilePicture(formData);
+      }
+      // Refetch profile
+      const profileRes = await api.auth.getProfile();
+      const user = profileRes.user;
+      setUserInfo({
+        id: user._id,
+        name: user.username,
+        email: user.email,
+        joinDate: new Date(user.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' }),
+        totalPoints: user.points_balance,
+        profile_photo: user.profile_photo,
+        location: user.location,
+      });
+      setProfileImage(user.profile_photo || null);
+      setEditProfileData({
+        name: user.username,
+        email: user.email,
+        location: user.location || '',
+      });
+      setIsEditing(false);
+    } catch (err) {
+      setError(err.message || 'Failed to update profile');
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    // Reset to original values if needed
+    // Reset to original values
+    setEditProfileData({
+      name: userInfo.name,
+      email: userInfo.email,
+      location: userInfo.location || '',
+    });
+    setProfileImage(userInfo.profile_photo || null);
   };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
 
   return (
     <div className="min-h-screen bg-[#F2F2F2]">
       {/* Header */}
       <Navbar />
-
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Information Card */}
@@ -157,27 +189,37 @@ export const Profile = () => {
                   {isEditing ? (
                     <div className="space-y-3">
                       <Input
-                        value={userInfo.name}
-                        onChange={(e) => setUserInfo({...userInfo, name: e.target.value})}
+                        value={editProfileData.name}
+                        onChange={(e) => setEditProfileData({...editProfileData, name: e.target.value})}
                         className="text-center border-[#B6B09F]/30 focus:border-[#B6B09F]"
+                        placeholder="Name"
                       />
                       <Input
-                        value={userInfo.email}
-                        onChange={(e) => setUserInfo({...userInfo, email: e.target.value})}
+                        value={editProfileData.email}
+                        onChange={(e) => setEditProfileData({...editProfileData, email: e.target.value})}
                         className="text-center border-[#B6B09F]/30 focus:border-[#B6B09F]"
+                        placeholder="Email"
+                      />
+                      <Input
+                        value={editProfileData.location}
+                        onChange={(e) => setEditProfileData({...editProfileData, location: e.target.value})}
+                        className="text-center border-[#B6B09F]/30 focus:border-[#B6B09F]"
+                        placeholder="Location"
                       />
                       <div className="flex space-x-2">
                         <Button
                           onClick={handleSaveProfile}
                           className="flex-1 bg-black hover:bg-[#B6B09F] text-white"
+                          disabled={savingProfile}
                         >
                           <Check className="w-4 h-4 mr-2" />
-                          Save
+                          {savingProfile ? 'Saving...' : 'Save'}
                         </Button>
                         <Button
                           onClick={handleCancelEdit}
                           variant="outline"
                           className="flex-1 border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
+                          disabled={savingProfile}
                         >
                           <X className="w-4 h-4 mr-2" />
                           Cancel
@@ -208,7 +250,6 @@ export const Profile = () => {
                 </div>
               </CardHeader>
             </Card>
-
             {/* Stats Card */}
             <Card className="bg-white border-[#B6B09F]/20 shadow-lg mt-6">
               <CardHeader>
@@ -226,20 +267,12 @@ export const Profile = () => {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#B6B09F]">Items Swapped</span>
-                  <span className="font-bold text-black">{userInfo.itemsSwapped}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[#B6B09F]">Rating</span>
-                  <span className="font-bold text-black flex items-center">
-                    <Star className="w-4 h-4 mr-1 fill-yellow-400 text-yellow-400" />
-                    {userInfo.rating}
-                  </span>
+                  <span className="text-[#B6B09F]">Location</span>
+                  <span className="font-bold text-black">{userInfo.location || '-'}</span>
                 </div>
               </CardContent>
             </Card>
           </div>
-
           {/* Transaction History */}
           <div className="lg:col-span-2">
             <Card className="bg-white border-[#B6B09F]/20 shadow-lg">
@@ -251,27 +284,27 @@ export const Profile = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {transactions.map((transaction) => (
+                  {(showAllTransactions ? transactions : transactions.slice(0, 5)).map((transaction) => (
                     <div
-                      key={transaction.id}
+                      key={transaction._id}
                       className="flex items-center justify-between p-4 bg-[#F2F2F2] rounded-lg border border-[#B6B09F]/10"
                     >
                       <div className="flex items-center space-x-4">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          transaction.type === 'earned' 
+                          transaction.transaction_type === 'earn' 
                             ? 'bg-green-100 text-green-600' 
                             : 'bg-red-100 text-red-600'
                         }`}>
-                          {transaction.type === 'earned' ? (
+                          {transaction.transaction_type === 'earn' ? (
                             <ArrowUpDown className="w-5 h-5 rotate-180" />
                           ) : (
                             <ArrowUpDown className="w-5 h-5" />
                           )}
                         </div>
                         <div>
-                          <h4 className="font-semibold text-black">{transaction.item}</h4>
+                          <h4 className="font-semibold text-black">{transaction.description}</h4>
                           <p className="text-sm text-[#B6B09F]">
-                            {new Date(transaction.date).toLocaleDateString('en-US', {
+                            {new Date(transaction.createdAt).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'short',
                               day: 'numeric'
@@ -281,9 +314,9 @@ export const Profile = () => {
                       </div>
                       <div className="text-right">
                         <p className={`font-bold ${
-                          transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'
+                          transaction.transaction_type === 'earn' ? 'text-green-600' : 'text-red-600'
                         }`}>
-                          {transaction.type === 'earned' ? '+' : '-'}{transaction.points} Points
+                          {transaction.transaction_type === 'earn' ? '+' : '-'}{transaction.points} Points
                         </p>
                         <p className={`text-sm ${
                           transaction.status === 'completed' ? 'text-green-600' : 'text-yellow-600'
@@ -294,19 +327,19 @@ export const Profile = () => {
                     </div>
                   ))}
                 </div>
-                
-                {/* Load More Button */}
-                <div className="text-center mt-6">
-                  <Button
-                    variant="outline"
-                    className="border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
-                  >
-                    Load More Transactions
-                  </Button>
-                </div>
+                {transactions.length > 5 && (
+                  <div className="text-center mt-6">
+                    <Button
+                      variant="outline"
+                      className="border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
+                      onClick={() => setShowAllTransactions((prev) => !prev)}
+                    >
+                      {showAllTransactions ? 'Show Less' : 'Load More Transactions'}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
-
             {/* Upload New Item Card */}
             <Card className="bg-white border-[#B6B09F]/20 shadow-lg mt-6">
               <CardHeader>
@@ -335,7 +368,6 @@ export const Profile = () => {
                 </div>
               </CardContent>
             </Card>
-
             {/* My Listings Section */}
             <Card className="bg-white border-[#B6B09F]/20 shadow-lg mt-6">
               <CardHeader>
@@ -353,43 +385,49 @@ export const Profile = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {myListings.map((item) => (
-                    <Card key={item.id} className="bg-[#F2F2F2] border-[#B6B09F]/20">
+                {myListings.length === 0 ? (
+                  <div className="text-[#B6B09F]">No listings yet.</div>
+                ) : (
+                  (showAllListings ? myListings : myListings.slice(0, 5)).map((item) => (
+                    <Card key={item._id} className="bg-[#F2F2F2] border-[#B6B09F]/20">
                       <CardContent className="p-4">
                         <div className="flex space-x-4">
                           <div className="w-20 h-20 bg-[#EAE4D5] rounded-lg flex items-center justify-center flex-shrink-0">
-                            <span className="text-[#B6B09F] text-xs">Image</span>
+                            {item.images && item.images.length > 0 ? (
+                              <img src={item.images[0]} alt={item.title} className="w-full h-full object-cover rounded-lg" />
+                            ) : (
+                              <span className="text-[#B6B09F] text-xs">Image</span>
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between">
-                              <h3 className="font-semibold text-black text-sm truncate">{item.name}</h3>
+                              <h3 className="font-semibold text-black text-sm truncate">{item.title}</h3>
                               <div className={`px-2 py-1 rounded-full text-xs font-medium ml-2 ${
-                                item.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                item.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                               }`}>
                                 {item.status}
                               </div>
                             </div>
-                            <p className="text-lg font-bold text-black mt-1">{item.points} Points</p>
+                            <p className="text-lg font-bold text-black mt-1">{item.points_value} Points</p>
                             <div className="flex items-center justify-between text-xs text-[#B6B09F] mt-2">
                               <div className="flex items-center space-x-3">
                                 <div className="flex items-center space-x-1">
                                   <Eye className="h-3 w-3" />
-                                  <span>{item.views}</span>
+                                  <span>{item.views || 0}</span>
                                 </div>
                                 <div className="flex items-center space-x-1">
                                   <Heart className="h-3 w-3" />
-                                  <span>{item.likes}</span>
+                                  <span>{item.likes || 0}</span>
                                 </div>
                               </div>
                             </div>
                             <div className="flex space-x-2 mt-2">
-                              <Link to={`/item/${item.id}`} className="flex-1">
+                              <Link to={`/item/${item._id}`} className="flex-1">
                                 <Button size="sm" className="w-full bg-black hover:bg-[#B6B09F] text-white text-xs">
                                   View
                                 </Button>
                               </Link>
-                              <Link to={`/product-detail/${item.id}`} className="flex-1">
+                              <Link to={`/product-detail/${item._id}`} className="flex-1">
                                 <Button 
                                   variant="outline" 
                                   size="sm"
@@ -403,11 +441,21 @@ export const Profile = () => {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
-                </div>
+                  ))
+                )}
+                {myListings.length > 5 && (
+                  <div className="text-center mt-6">
+                    <Button
+                      variant="outline"
+                      className="border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
+                      onClick={() => setShowAllListings((prev) => !prev)}
+                    >
+                      {showAllListings ? 'Show Less' : 'Load More Listings'}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
-
             {/* My Purchases Section */}
             <Card className="bg-white border-[#B6B09F]/20 shadow-lg mt-6">
               <CardHeader>
@@ -426,46 +474,66 @@ export const Profile = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {myPurchases.map((item) => (
-                    <Card key={item.id} className="bg-[#F2F2F2] border-[#B6B09F]/20">
-                      <CardContent className="p-4">
-                        <div className="flex space-x-4">
-                          <div className="w-20 h-20 bg-[#EAE4D5] rounded-lg flex items-center justify-center flex-shrink-0">
-                            <span className="text-[#B6B09F] text-xs">Image</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-black text-sm truncate">{item.name}</h3>
-                            <div className="flex items-center justify-between mt-1">
-                              <p className="text-lg font-bold text-black">{item.points} Points</p>
-                              <div className="flex items-center space-x-1">
-                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                <span className="text-xs text-[#B6B09F]">{item.rating}</span>
+                  {myPurchases.length === 0 ? (
+                    <div className="text-[#B6B09F]">No purchases yet.</div>
+                  ) : (
+                    (showAllPurchases ? myPurchases : myPurchases.slice(0, 5)).map((tx) => (
+                      <Card key={tx._id} className="bg-[#F2F2F2] border-[#B6B09F]/20">
+                        <CardContent className="p-4">
+                          <div className="flex space-x-4">
+                            <div className="w-20 h-20 bg-[#EAE4D5] rounded-lg flex items-center justify-center flex-shrink-0">
+                              {/* Show item image if available */}
+                              {tx.item_id && tx.item_id.images && tx.item_id.images.length > 0 ? (
+                                <img src={tx.item_id.images[0]} alt={tx.item_id.title} className="w-full h-full object-cover rounded-lg" />
+                              ) : (
+                                <span className="text-[#B6B09F] text-xs">Image</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-black text-sm truncate">{tx.item_id && tx.item_id.title}</h3>
+                              <div className="flex items-center justify-between mt-1">
+                                <p className="text-lg font-bold text-black">{tx.points} Points</p>
+                                <div className="flex items-center space-x-1">
+                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                  <span className="text-xs text-[#B6B09F]">{tx.rating || '-'}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-1 text-xs text-[#B6B09F] mt-2">
+                                <Clock className="h-3 w-3" />
+                                <span>Purchased {new Date(tx.createdAt).toLocaleDateString()}</span>
+                              </div>
+                              <div className="flex space-x-2 mt-2">
+                                <Link to={`/item/${tx.item_id && tx.item_id._id}`} className="flex-1">
+                                  <Button size="sm" className="w-full bg-black hover:bg-[#B6B09F] text-white text-xs">
+                                    View
+                                  </Button>
+                                </Link>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="flex-1 border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white text-xs"
+                                >
+                                  Rate
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex items-center space-x-1 text-xs text-[#B6B09F] mt-2">
-                              <Clock className="h-3 w-3" />
-                              <span>Purchased {item.purchaseDate}</span>
-                            </div>
-                            <div className="flex space-x-2 mt-2">
-                              <Link to={`/item/${item.id}`} className="flex-1">
-                                <Button size="sm" className="w-full bg-black hover:bg-[#B6B09F] text-white text-xs">
-                                  View
-                                </Button>
-                              </Link>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="flex-1 border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white text-xs"
-                              >
-                                Rate
-                              </Button>
-                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </div>
+                {myPurchases.length > 5 && (
+                  <div className="text-center mt-6">
+                    <Button
+                      variant="outline"
+                      className="border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
+                      onClick={() => setShowAllPurchases((prev) => !prev)}
+                    >
+                      {showAllPurchases ? 'Show Less' : 'Load More Purchases'}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
