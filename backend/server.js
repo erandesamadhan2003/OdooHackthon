@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import connectDB from "./db/connect.js";
 import userRoute from "./routes/user.route.js";
+import itemsRoute from "./routes/items.route.js";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use(cors({
 
 // APIs
 app.use("/api/user", userRoute);
+app.use("/api/items", itemsRoute);
 
 app.listen(PORT, () => {
     connectDB(process.env.MONGO_URI);

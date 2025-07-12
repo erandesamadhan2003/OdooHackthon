@@ -3,7 +3,7 @@ import {
   requestSwap,
   getUserSwaps,
   updateSwapStatus
-} from '../controllers/swapController.js';
+} from '../controllers/swaps.controller.js';
 
 import isAuthenticated from '../middleware/isAuthentication.js';
 

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserTransactions } from '../controllers/transactionController.js';
+import { getUserTransactions } from '../controllers/transactions.controller.js';
 
 import isAuthenticated from '../middleware/isAuthentication.js';
 
