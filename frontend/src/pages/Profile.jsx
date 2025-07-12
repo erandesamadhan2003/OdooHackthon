@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { 
   Camera, 
   Upload, 
@@ -19,15 +20,22 @@ import {
   Heart,
   Package,
   ShoppingCart,
-  Clock
+  Clock,
+  MessageCircle,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Navbar } from '@/components/layouts/Navbar';
+import { Notification } from '@/components/ui/notification';
 import api from '../services/api';
+import { getUserSwaps, updateSwapStatus } from '@/app/features/swaps/swapsSlice';
 
 export const Profile = () => {
+  const dispatch = useDispatch();
+  const { swaps, loading: swapsLoading, updateLoading } = useSelector((state) => state.swaps);
   const [profileImage, setProfileImage] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
@@ -42,6 +50,7 @@ export const Profile = () => {
   const [editProfileData, setEditProfileData] = useState(null);
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [notification, setNotification] = useState({ show: false, type: 'success', message: '' });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,6 +87,9 @@ export const Profile = () => {
         // 4. My Purchases: filter transactions for type 'redeem' or 'swap'
         const purchases = txRes.filter(tx => tx.transaction_type === 'redeem' || tx.transaction_type === 'swap');
         setMyPurchases(purchases);
+
+        // 5. Fetch user swaps
+        dispatch(getUserSwaps());
       } catch (err) {
         setError(err.message || 'Failed to load profile data');
       } finally {
@@ -85,7 +97,7 @@ export const Profile = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [dispatch]);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -167,6 +179,56 @@ export const Profile = () => {
       location: userInfo.location || '',
     });
     setProfileImage(userInfo.profile_photo || null);
+  };
+
+  // Handle swap status update
+  const handleSwapStatusUpdate = async (swapId, status) => {
+    try {
+      await dispatch(updateSwapStatus({ swapId, status })).unwrap();
+      setNotification({
+        show: true,
+        type: 'success',
+        message: `Swap ${status} successfully`
+      });
+    } catch (error) {
+      setNotification({
+        show: true,
+        type: 'error',
+        message: error || 'Failed to update swap status'
+      });
+    }
+  };
+
+  // Filter swaps by user role
+  const incomingSwaps = swaps.filter(swap => swap.owner_id._id === userInfo?.id);
+  const outgoingSwaps = swaps.filter(swap => swap.requester_id._id === userInfo?.id);
+
+  // Helper function to get status color
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'accepted':
+        return 'bg-green-100 text-green-800';
+      case 'declined':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Helper function to get status icon
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="h-4 w-4" />;
+      case 'accepted':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'declined':
+        return <XCircle className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -557,9 +619,127 @@ export const Profile = () => {
                 )}
               </CardContent>
             </Card>
+            {/* Incoming Swap Requests */}
+            <Card className="bg-white border-[#B6B09F]/20 shadow-lg mt-6">
+              <CardHeader>
+                <CardTitle className="text-black flex items-center">
+                  <MessageCircle className="w-5 h-5 mr-2 text-[#B6B09F]" />
+                  Incoming Swap Requests
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {incomingSwaps.length === 0 ? (
+                  <div className="text-[#B6B09F]">No incoming swap requests.</div>
+                ) : (
+                  <div className="space-y-4">
+                    {incomingSwaps.map((swap) => (
+                      <Card key={swap._id} className="bg-[#F2F2F2] border-[#B6B09F]/20">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-black text-sm truncate">
+                              Swap Request from {swap.requester_id?.username || 'Unknown User'}
+                            </h3>
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(swap.status)}`}>
+                              {swap.status}
+                            </div>
+                          </div>
+                          <p className="text-sm text-[#B6B09F] mt-2">
+                            Item: {swap.item_id?.title || 'Unknown Item'}
+                          </p>
+                          <p className="text-sm text-[#B6B09F] mt-2">
+                            Points Value: {swap.item_id?.points_value || 0} Points
+                          </p>
+                          {swap.message && (
+                            <p className="text-sm text-[#B6B09F] mt-2">
+                              Message: "{swap.message}"
+                            </p>
+                          )}
+                          {swap.status === 'pending' && (
+                            <div className="flex items-center space-x-2 mt-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
+                                onClick={() => handleSwapStatusUpdate(swap._id, 'accepted')}
+                                disabled={updateLoading}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Accept
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 border-[#B6B09F]/30 text-black hover:bg-[#B6B09F] hover:text-white"
+                                onClick={() => handleSwapStatusUpdate(swap._id, 'declined')}
+                                disabled={updateLoading}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Decline
+                              </Button>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            {/* Outgoing Swap Requests */}
+            <Card className="bg-white border-[#B6B09F]/20 shadow-lg mt-6">
+              <CardHeader>
+                <CardTitle className="text-black flex items-center">
+                  <MessageCircle className="w-5 h-5 mr-2 text-[#B6B09F]" />
+                  Outgoing Swap Requests
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {outgoingSwaps.length === 0 ? (
+                  <div className="text-[#B6B09F]">No outgoing swap requests.</div>
+                ) : (
+                  <div className="space-y-4">
+                    {outgoingSwaps.map((swap) => (
+                      <Card key={swap._id} className="bg-[#F2F2F2] border-[#B6B09F]/20">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-black text-sm truncate">
+                              Swap Request to {swap.owner_id?.username || 'Unknown User'}
+                            </h3>
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(swap.status)}`}>
+                              {swap.status}
+                            </div>
+                          </div>
+                          <p className="text-sm text-[#B6B09F] mt-2">
+                            Item: {swap.item_id?.title || 'Unknown Item'}
+                          </p>
+                          <p className="text-sm text-[#B6B09F] mt-2">
+                            Points Value: {swap.item_id?.points_value || 0} Points
+                          </p>
+                          {swap.message && (
+                            <p className="text-sm text-[#B6B09F] mt-2">
+                              Message: "{swap.message}"
+                            </p>
+                          )}
+                          <p className="text-xs text-[#B6B09F] mt-2">
+                            Requested on: {new Date(swap.createdAt).toLocaleDateString()}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
+      {notification.show && (
+        <Notification
+          type={notification.type}
+          message={notification.message}
+          onClose={() => setNotification({ ...notification, show: false })}
+        />
+      )}
     </div>
   );
 };
