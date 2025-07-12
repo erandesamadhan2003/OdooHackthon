@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 // Register
 export const register = async (req, res) => {
@@ -116,5 +117,42 @@ export const updateUserProfile = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ status: "error", error: "Server error" });
+    }
+};
+
+export const uploadProfilePicture = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ status: "error", error: "No file uploaded" });
+        }
+
+        const user = await User.findById(req.id);
+        if (!user) {
+            return res.status(404).json({ status: "error", error: "User not found" });
+        }
+
+        // Upload to Cloudinary
+        const cloudinaryUrl = await uploadToCloudinary(req.file);
+        
+        // Update user profile with new image URL
+        user.profile_photo = cloudinaryUrl;
+        await user.save();
+
+        res.status(200).json({ 
+            status: "success", 
+            message: "Profile picture uploaded successfully", 
+            profile_photo: cloudinaryUrl,
+            user: {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                profile_photo: user.profile_photo,
+                location: user.location,
+                points_balance: user.points_balance
+            }
+        });
+    } catch (err) {
+        console.error('Profile picture upload error:', err);
+        res.status(500).json({ status: "error", error: "Failed to upload profile picture" });
     }
 };
