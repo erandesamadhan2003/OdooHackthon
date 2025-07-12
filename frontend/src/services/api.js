@@ -66,10 +66,14 @@ export const authAPI = {
         body: JSON.stringify(profileData),
     }),
     
-    uploadProfilePicture: (formData) => apiRequest('/user/profile/upload-picture', {
+    uploadProfilePicture: (formData) => fetch(`${API_BASE_URL}/user/profile/upload-picture`, {
         method: 'POST',
-        headers: {}, // Let browser set content-type for FormData
         body: formData,
+        credentials: 'include',
+    }).then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to upload profile picture');
+        return data;
     }),
     
     verifyToken: () => apiRequest('/user/verify', {

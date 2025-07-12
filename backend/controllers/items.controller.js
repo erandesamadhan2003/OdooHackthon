@@ -22,7 +22,7 @@ export const getAllItems = async (req, res) => {
     );
     res.json(items);
   } catch (err) {
-    console.error("Error in getAllItems:", err); // <--- Add this
+    console.error("Error in getAllItems:", err);
     res.status(500).json({ error: "Server Error" });
   }
 };
@@ -42,8 +42,7 @@ export const getItemById = async (req, res) => {
 
 export const createItem = async (req, res) => {
   try {
-    const { title, description, category, type, size, condition, tags } =
-      req.body;
+    const { title, description, category, type, size, condition, tags, brand, original_price, age_months } = req.body;
     const files = req.files;
 
     // Upload images to Cloudinary
@@ -51,14 +50,27 @@ export const createItem = async (req, res) => {
       files.map((file) => uploadToCloudinary(file))
     );
 
-    // // Call ML model to get points
-    // const { data } = await axios.post('http://localhost:5000/predict-score', { // ML MODEL POINTS BATAYEGA
-    //   title, category, type, condition, tags
-    // });
-
-    // const points_value = data.points;
-
-    const points_value = 500;
+    // Call ML model to get points/price
+    let points_value = 500; // fallback
+    try {
+      const mlRes = await fetch('https://c5130126c798.ngrok-free.app/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brand: brand || '',
+          condition: condition || '',
+          age_months: age_months ? Number(age_months) : 0,
+          category: category || '',
+          original_price: original_price ? Number(original_price) : 0
+        })
+      });
+      const mlData = await mlRes.json();
+      if (mlRes.ok && mlData && mlData.price) {
+        points_value = mlData.price;
+      }
+    } catch (mlErr) {
+      console.error('ML model error:', mlErr);
+    }
 
     const newItem = new Item({
       title,
@@ -67,10 +79,13 @@ export const createItem = async (req, res) => {
       type,
       size,
       condition,
-      tags: tags.split(","),
+      tags: tags ? tags.split(",") : [],
       images: imageUrls,
       uploaded_by: req.id,
       points_value,
+      brand,
+      original_price: original_price ? Number(original_price) : 0,
+      age_months: age_months ? Number(age_months) : 0
     });
 
     const savedItem = await newItem.save();
