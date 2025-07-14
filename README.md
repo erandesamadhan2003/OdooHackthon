@@ -1,5 +1,7 @@
 # ReWear – Community Clothing Exchange
 
+**Team: Team 2729**
+
 ## 🌱 Overview
 
 ReWear is a web-based platform that enables users to exchange unused clothing through direct swaps or a point-based redemption system. Our mission is to promote sustainable fashion and reduce textile waste by encouraging users to reuse wearable garments instead of discarding them.
@@ -72,7 +74,14 @@ The fashion industry generates massive textile waste, with millions of tons of c
 
 ## 📁 Project Structure
 
+```
+OdooHackthon/
+  backend/      # Node.js/Express API, MongoDB, authentication, admin, business logic
+  frontend/     # React app, Vite, Tailwind CSS, user interface
+```
 
+- **backend/**: Express.js server, API routes, authentication, admin, MongoDB models, business logic
+- **frontend/**: React app (Vite), UI, state management, API calls, user flows
 
 ## 🚀 Getting Started
 
@@ -82,20 +91,73 @@ The fashion industry generates massive textile waste, with millions of tons of c
 - MongoDB Atlas account
 - Clerk account for authentication
 
+### 1. Clone the repository
+```bash
+git clone <repo-url>
+cd OdooHackthon
+```
 
+### 2. Backend Setup
+```bash
+cd backend
+npm install
+```
+
+#### Create a `.env` file in `backend/` with the following:
+```env
+PORT=8004
+NODE_ENV=development
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=1d
+FRONTEND_URL=http://localhost:5173
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+SESSION_SECRET=your_session_secret
+```
+
+#### Start the backend server
+```bash
+npm start
+# or
+node server.js
+```
+
+### 3. Frontend Setup
+```bash
+cd ../frontend
+npm install
+```
+
+#### Start the frontend dev server
+```bash
+npm run dev
+```
+
+> **Note:**
+> - The frontend does **not** require a `.env` file by default. All API URLs are hardcoded to `http://localhost:8004/api`.
+> - If you want to make the API URL configurable, create a `.env` file in `frontend/` with:
+>   ```env
+>   VITE_API_BASE_URL=http://localhost:8004/api
+>   ```
+>   And update your API calls to use `import.meta.env.VITE_API_BASE_URL`.
+
+---
 
 ## 👥 Team
 
 **Development Team:**
-- **Samadhan Ernde** - [202352327@vadodara.ac.in](mailto:202352327@vadodara.ac.in)
+- **Samadhan Erande** - [202352327@vadodara.ac.in](mailto:202352327@vadodara.ac.in)
 - **Shantanu Sawant** - [202352332@vadodara.ac.in](mailto:202352332@vadodara.ac.in)
-- **Atharva Pati** - [202351014@vadodara.ac.in](mailto:202351014@vadodara.ac.in)
+- **Atharva Patil** - [202351014@vadodara.ac.in](mailto:202351014@vadodara.ac.in)
 - **Harsha Agrawal** - [202351045@vadodara.ac.in](mailto:202351045@vadodara.ac.in)
 
 ## 📄 License
 
 This project is developed for educational purposes as part of the Odoo Hackathon.
-
 
 ## 📞 Support
 
